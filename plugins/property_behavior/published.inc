@@ -10,7 +10,7 @@
 define('ECK_PUBLISHED_YES', 0x01);
 
 /**
- * Define the non-published status.
+ * Define the unpublished status.
 */
 define('ECK_PUBLISHED_NO', 0x00);
  
