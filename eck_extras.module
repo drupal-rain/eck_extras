@@ -1,0 +1,14 @@
+<?php 
+/**
+ * @file 
+ * eck_extras module file.
+ */
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function eck_extras_ctools_plugin_directory($owner, $plugin_type) {
+  if ($owner == 'eck' && $plugin_type == 'property_behavior') {
+    return 'plugins/' . $plugin_type;
+  }
+}
