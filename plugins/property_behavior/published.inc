@@ -24,7 +24,7 @@ function eck_extras_published_property_default_widget($property, $vars) {
   return array(
     '#type' => 'checkbox',
     '#title' => $vars['properties'][$property]['label'],
-    '#default_value' => $vars['entity']->{$property},
+    '#default_value' => isset($vars['entity']->{$property}) ? $vars['entity']->{$property} : 0,
   );
 }
 
