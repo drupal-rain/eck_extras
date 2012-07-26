@@ -35,6 +35,7 @@ function eck_extras_published_property_entity_view($property, $vars) {
     drupal_set_title($entity->title);
     if (!user_access('eck administer ' . $entity->entityType() . ' ' . $entity->bundle() . ' entities')) {
       drupal_access_denied();
+      die();
     }
   }
 }
