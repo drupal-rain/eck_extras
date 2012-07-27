@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file 
+ * @file
  * eck_extras module file.
  */
 
@@ -26,7 +26,7 @@ function eck_extras_get_entity_types() {
       }
     }
   }
-  
+
   return $eck_entity_types;
 }
 
@@ -60,7 +60,7 @@ function eck_extras_field_extra_fields() {
       }
     }
   }
-  
+
   return $fields;
 }
 
