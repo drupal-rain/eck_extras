@@ -77,7 +77,7 @@ function eck_extras_form_eck_path_validate($element, &$form_state, $complete_for
   $entity_path = $entity_uri['path'];
   // @todo support multilanguage.
   $langcode = LANGUAGE_NONE;
-  $entity_path_alias = drupal_get_path_alias($entity_path, $langcode);
+  $entity_path_alias = path_load($entity_path);
   // Check if the wanted alias already used
   $pid = db_query_range("SELECT pid FROM {url_alias} WHERE source <> :source AND alias = :alias AND language IN (:language, :language_none) ORDER BY language DESC, pid DESC", 0, 1, array(
     ':source' => $entity_path,
@@ -90,13 +90,17 @@ function eck_extras_form_eck_path_validate($element, &$form_state, $complete_for
     return;
   }
   // If the same, no need to work on.
-  if ($eck_path == $entity_path_alias) {
-    return;
-  } 
-  $entity->eck_path = array(
-    'source' => $entity_path,
-    'alias' => $eck_path,
-  );
+  if ($entity_path_alias !== FALSE) {
+    if ($entity_path_alias['alias'] == $eck_path) {
+      return;
+    }
+    else if (strlen($eck_path) == 0) {
+      path_delete($entity_path_alias);
+    }
+    else {
+      $entity->eck_path = array_merge($entity_path_alias, array('alias' => $eck_path));
+    }
+  }
 }
 
 /**
