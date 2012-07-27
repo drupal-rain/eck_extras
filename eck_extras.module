@@ -52,20 +52,26 @@ function eck_extras_field_extra_fields() {
  * Implements hook_field_attach_form().
  */
 function eck_extras_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode) {
-  $entity_uri = $entity->uri();
-  $entity_path = $entity_uri['path'];
-  $entity_path_alias = drupal_get_path_alias($entity_path, $langcode);
-  $entity_path_default = ($entity_path_alias != $entity_path) ? $entity_path_alias : '';
-  $description_additional = strlen($entity_path_default) > 0 ? '<br />Current Alias: ' . $entity_path_default : '';
-  $form['eck_path'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Path Alias'),
-    '#description' => t('Set the path alias of this entity.') . $description_additional,
-    '#size' => 60,
-    '#default_value' => $entity_path_default,
-    '#weight' => 100,
-    '#element_validate' => array('eck_extras_form_eck_path_validate'),
-  );
+  $eck_entity_types = array();
+  foreach (EntityType::loadAll() as $eck_entity_type) {
+    $eck_entity_types[] = $eck_entity_type->name;
+  }
+  if (in_array($entity_type, $eck_entity_types)) {
+    $entity_uri = $entity->uri();
+    $entity_path = $entity_uri['path'];
+    $entity_path_alias = drupal_get_path_alias($entity_path, $langcode);
+    $entity_path_default = ($entity_path_alias != $entity_path) ? $entity_path_alias : '';
+    $description_additional = strlen($entity_path_default) > 0 ? '<br />Current Alias: ' . $entity_path_default : '';
+    $form['eck_path'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Path Alias'),
+      '#description' => t('Set the path alias of this entity.') . $description_additional,
+      '#size' => 60,
+      '#default_value' => $entity_path_default,
+      '#weight' => 100,
+      '#element_validate' => array('eck_extras_form_eck_path_validate'),
+    );
+  }
 }
 
 /**
