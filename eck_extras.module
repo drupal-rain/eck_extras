@@ -15,18 +15,35 @@ function eck_extras_ctools_plugin_directory($owner, $plugin_type) {
 }
 
 /**
+ * Helper function to get the entity types of eck module.
+ */
+function eck_extras_get_entity_types() {
+  $eck_entity_types = &drupal_static(__FUNCTION__);
+  if (!isset($eck_entity_types)) {
+    foreach (EntityType::loadAll() as $eck_entity_type) {
+      foreach (Bundle::loadByEntityType($eck_entity_type) as $eck_bundle) {
+        $eck_entity_types[$eck_entity_type->name][] = $eck_bundle->name;
+      }
+    }
+  }
+  
+  return $eck_entity_types;
+}
+
+/**
  * Implements hook_field_extra_fields().
  */
 function eck_extras_field_extra_fields() {
   $fields = array();
-  foreach (EntityType::loadAll() as $eck_entity_type) {
-    foreach (Bundle::loadByEntityType($eck_entity_type) as $eck_bundle) {
-      $fields[$eck_entity_type->name][$eck_bundle->name]['form']['title'] = array(
+  $eck_entity_types = eck_extras_get_entity_types();
+  foreach ($eck_entity_types as $eck_entity_type => $eck_entity_type_bundles) {
+    foreach ($eck_entity_type_bundles as $eck_bundle) {
+      $fields[$eck_entity_type][$eck_bundle]['form']['title'] = array(
         'label' => t('Title'),
         'description' => t('Set the title of this entity.'),
         'weight' => -10,
       );
-      $fields[$eck_entity_type->name][$eck_bundle->name]['form']['eck_path'] = array(
+      $fields[$eck_entity_type][$eck_bundle]['form']['eck_path'] = array(
         'label' => t('Path Alias'),
         'description' => t('Set the path alias of this entity.'),
         'weight' => 100,
@@ -34,7 +51,7 @@ function eck_extras_field_extra_fields() {
       // If the entity implements the specific property behavior.
       foreach ($eck_entity_type->properties as $property_name => $property) {
         if ($property['behavior'] == 'published') {
-          $fields[$eck_entity_type->name][$eck_bundle->name]['form'][$property_name] = array(
+          $fields[$eck_entity_type][$eck_bundle]['form'][$property_name] = array(
             'label' => t($property['label']),
             'description' => t('Set the published status of this entity.'),
             'weight' => 100,
@@ -51,20 +68,22 @@ function eck_extras_field_extra_fields() {
  * Implements hook_field_attach_form().
  */
 function eck_extras_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode) {
-  $eck_entity_types = array();
-  foreach (EntityType::loadAll() as $eck_entity_type) {
-    $eck_entity_types[] = $eck_entity_type->name;
-  }
-  if (in_array($entity_type, $eck_entity_types)) {
+  $eck_entity_types = eck_extras_get_entity_types();
+  if (in_array($entity_type, array_keys($eck_entity_types))) {
     $entity_uri = $entity->uri();
     $entity_path = $entity_uri['path'];
     $entity_path_alias = drupal_get_path_alias($entity_path, $langcode);
-    $entity_path_default = ($entity_path_alias != $entity_path) ? $entity_path_alias : '';
-    $description_additional = strlen($entity_path_default) > 0 ? '<br />Current Alias: ' . $entity_path_default : '';
+    // If it has a alias already, show it.
+    if ($entity_path_alias != $entity_path) {
+      $entity_path_default = $entity_path_alias;
+    }
+    else {
+      $entity_path_default = '';
+    }
     $form['eck_path'] = array(
       '#type' => 'textfield',
       '#title' => t('Path Alias'),
-      '#description' => t('Set the path alias of this entity.') . $description_additional,
+      '#description' => t('Set the path alias of this entity.'),
       '#size' => 60,
       '#default_value' => $entity_path_default,
       '#weight' => 100,
@@ -74,7 +93,7 @@ function eck_extras_field_attach_form($entity_type, $entity, &$form, &$form_stat
 }
 
 /**
- * Form validate callback for eck_path, add value to the $entity object at this stage.
+ * Form validate callback for eck_path, add value to the $entity object.
  */
 function eck_extras_form_eck_path_validate($element, &$form_state, $complete_form) {
   global $language;
