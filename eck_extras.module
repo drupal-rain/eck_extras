@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 /**
  * @file 
  * eck_extras module file.
@@ -18,22 +19,22 @@ function eck_extras_ctools_plugin_directory($owner, $plugin_type) {
  */
 function eck_extras_field_extra_fields() {
   $fields = array();
-  foreach (EntityType::loadAll() as $entityType) {
-    foreach (Bundle::loadByEntityType($entityType) as $bundle) {
-      $fields[$entityType->name][$bundle->name]['form']['title'] = array(
+  foreach (EntityType::loadAll() as $eck_entity_type) {
+    foreach (Bundle::loadByEntityType($eck_entity_type) as $eck_bundle) {
+      $fields[$eck_entity_type->name][$eck_bundle->name]['form']['title'] = array(
         'label' => t('Title'),
         'description' => t('Set the title of this entity.'),
         'weight' => -10,
       );
-      $fields[$entityType->name][$bundle->name]['form']['eck_path'] = array(
+      $fields[$eck_entity_type->name][$eck_bundle->name]['form']['eck_path'] = array(
         'label' => t('Path Alias'),
         'description' => t('Set the path alias of this entity.'),
         'weight' => 100,
       );
       // If the entity implements the specific property behavior.
-      foreach ($entityType->properties as $property_name => $property) {
+      foreach ($eck_entity_type->properties as $property_name => $property) {
         if ($property['behavior'] == 'published') {
-          $fields[$entityType->name][$bundle->name]['form'][$property_name] = array(
+          $fields[$eck_entity_type->name][$eck_bundle->name]['form'][$property_name] = array(
             'label' => t($property['label']),
             'description' => t('Set the published status of this entity.'),
             'weight' => 100,
@@ -78,31 +79,35 @@ function eck_extras_form_eck_path_validate($element, &$form_state, $complete_for
   $entity_uri = $entity->uri();
   $entity_path = $entity_uri['path'];
   $entity_path_alias = path_load($entity_path);
-  // Check if the wanted alias already used
-  $pid = db_query_range("SELECT pid FROM {url_alias} WHERE source <> :source AND alias = :alias AND language IN (:language, :language_none) ORDER BY language DESC, pid DESC", 0, 1, array(
-    ':source' => $entity_path,
-    ':alias' => $eck_path,
-    ':language' => $langcode,
-    ':language_none' => LANGUAGE_NONE,
-  ))->fetchField();
+  // Check if the wanted alias already used.
+  $query = db_select('url_alias', 'ua')
+    ->fields('ua', array('pid'))
+    ->condition('ua.source', $entity_path, '<>')
+    ->condition('ua.alias', $eck_path, '=')
+    ->condition('ua.language', array($langcode, LANGUAGE_NONE), 'IN')
+    ->orderBy('ua.language', 'DESC')
+    ->orderBy('ua.pid', 'DESC')
+    ->range(0, 1)
+    ->execute();
+  $pid = $query->fetchField();
   if (!empty($pid)) {
     form_set_error('eck_path', t('This path alias is being used.'));
     return;
   }
-  // If the same, no need to work on.
   if ($entity_path_alias !== FALSE) {
+    // If the same, no need to work on.
     if ($entity_path_alias['alias'] == $eck_path) {
       return;
     }
-    else if (strlen($eck_path) == 0) {
+    elseif (strlen($eck_path) == 0) {
       path_delete($entity_path_alias);
     }
     else {
       $entity->eck_path = array_merge($entity_path_alias, array('alias' => $eck_path));
     }
   }
-  // Create new alias
-  else if ($entity_path_alias === FALSE && strlen($eck_path) > 0) {
+  // Create new alias.
+  elseif ($entity_path_alias === FALSE && strlen($eck_path) > 0) {
     $entity->eck_path = array(
       'source' => $entity_path,
       'alias' => $eck_path,

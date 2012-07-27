@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @file issue_status property_behavior plugin for eck.
+ * @file
+ * issue_status property_behavior plugin for eck.
  */
 
 /**
@@ -11,7 +12,7 @@ define('ECK_PUBLISHED_YES', 0x01);
 
 /**
  * Define the unpublished status.
-*/
+ */
 define('ECK_PUBLISHED_NO', 0x00);
  
 $plugin = array(
@@ -20,6 +21,9 @@ $plugin = array(
   'entity_view' => 'eck_extras_published_property_entity_view',
 );
 
+/**
+ * Implements 'default_widget'.
+ */
 function eck_extras_published_property_default_widget($property, $vars) {
   return array(
     '#type' => 'checkbox',
@@ -28,6 +32,9 @@ function eck_extras_published_property_default_widget($property, $vars) {
   );
 }
 
+/**
+ * Implements 'entity_view'.
+ */
 function eck_extras_published_property_entity_view($property, $vars) {
   $entity = $vars['entity'];
   if ($entity->{$property} == ECK_PUBLISHED_NO) {
@@ -35,7 +42,7 @@ function eck_extras_published_property_entity_view($property, $vars) {
     drupal_set_title($entity->title);
     if (!user_access('eck administer ' . $entity->entityType() . ' ' . $entity->bundle() . ' entities')) {
       drupal_access_denied();
-      die();
+      drupal_exit();
     }
   }
 }
