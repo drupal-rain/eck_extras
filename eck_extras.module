@@ -71,12 +71,12 @@ function eck_extras_field_attach_form($entity_type, $entity, &$form, &$form_stat
  * Form validate callback for eck_path, add value to the $entity object at this stage.
  */
 function eck_extras_form_eck_path_validate($element, &$form_state, $complete_form) {
+  global $language;
+  $langcode = $language->language;
   $eck_path = trim($element['#value']);
   $entity = $form_state['values']['entity'];
   $entity_uri = $entity->uri();
   $entity_path = $entity_uri['path'];
-  // @todo support multilanguage.
-  $langcode = LANGUAGE_NONE;
   $entity_path_alias = path_load($entity_path);
   // Check if the wanted alias already used
   $pid = db_query_range("SELECT pid FROM {url_alias} WHERE source <> :source AND alias = :alias AND language IN (:language, :language_none) ORDER BY language DESC, pid DESC", 0, 1, array(
@@ -100,6 +100,13 @@ function eck_extras_form_eck_path_validate($element, &$form_state, $complete_for
     else {
       $entity->eck_path = array_merge($entity_path_alias, array('alias' => $eck_path));
     }
+  }
+  // Create new alias
+  else if ($entity_path_alias === FALSE && strlen($eck_path) > 0) {
+    $entity->eck_path = array(
+      'source' => $entity_path,
+      'alias' => $eck_path,
+    );
   }
 }
 
