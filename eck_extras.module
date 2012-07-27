@@ -49,7 +49,7 @@ function eck_extras_field_extra_fields() {
         'weight' => 100,
       );
       // If the entity implements the specific property behavior.
-      foreach ($eck_entity_type->properties as $property_name => $property) {
+      foreach (EntityType::loadByName($eck_entity_type)->properties as $property_name => $property) {
         if ($property['behavior'] == 'published') {
           $fields[$eck_entity_type][$eck_bundle]['form'][$property_name] = array(
             'label' => t($property['label']),
