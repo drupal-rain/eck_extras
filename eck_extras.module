@@ -12,3 +12,117 @@ function eck_extras_ctools_plugin_directory($owner, $plugin_type) {
     return 'plugins/' . $plugin_type;
   }
 }
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function eck_extras_field_extra_fields() {
+  $fields = array();
+  foreach (EntityType::loadAll() as $entityType) {
+    foreach (Bundle::loadByEntityType($entityType) as $bundle) {
+      $fields[$entityType->name][$bundle->name]['form']['title'] = array(
+        'label' => t('Title'),
+        'description' => t('Set the title of this entity.'),
+        'weight' => -10,
+      );
+      $fields[$entityType->name][$bundle->name]['form']['eck_path'] = array(
+        'label' => t('Path Alias'),
+        'description' => t('Set the path alias of this entity.'),
+        'weight' => 100,
+      );
+      // If the entity implements the specific property behavior.
+      foreach ($entityType->properties as $property_name => $property) {
+        if ($property['behavior'] == 'published') {
+          $fields[$entityType->name][$bundle->name]['form'][$property_name] = array(
+            'label' => t($property['label']),
+            'description' => t('Set the published status of this entity.'),
+            'weight' => 100,
+          );
+        }
+      }
+      
+    }
+  }
+  
+  return $fields;
+}
+
+/**
+ * Implements hook_field_attach_form().
+ */
+function eck_extras_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode) {
+  $entity_uri = $entity->uri();
+  $entity_path = $entity_uri['path'];
+  $entity_path_alias = drupal_get_path_alias($entity_path, $langcode);
+  $entity_path_default = ($entity_path_alias != $entity_path) ? $entity_path_alias : '';
+  $description_additional = strlen($entity_path_default) > 0 ? '<br />Current Alias: ' . $entity_path_default : '';
+  $form['eck_path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Path Alias'),
+    '#description' => t('Set the path alias of this entity.') . $description_additional,
+    '#size' => 60,
+    '#default_value' => $entity_path_default,
+    '#weight' => 100,
+    '#element_validate' => array('eck_extras_form_eck_path_validate'),
+  );
+}
+
+/**
+ * Form validate callback for eck_path, add value to the $entity object at this stage.
+ */
+function eck_extras_form_eck_path_validate($element, &$form_state, $complete_form) {
+  $eck_path = trim($element['#value']);
+  $entity = $form_state['values']['entity'];
+  $entity_uri = $entity->uri();
+  $entity_path = $entity_uri['path'];
+  // @todo support multilanguage.
+  $langcode = LANGUAGE_NONE;
+  $entity_path_alias = drupal_get_path_alias($entity_path, $langcode);
+  // Check if the wanted alias already used
+  $pid = db_query_range("SELECT pid FROM {url_alias} WHERE source <> :source AND alias = :alias AND language IN (:language, :language_none) ORDER BY language DESC, pid DESC", 0, 1, array(
+    ':source' => $entity_path,
+    ':alias' => $eck_path,
+    ':language' => $langcode,
+    ':language_none' => LANGUAGE_NONE,
+  ))->fetchField();
+  if (!empty($pid)) {
+    form_set_error('eck_path', t('This path alias is being used.'));
+    return;
+  }
+  // If the same, no need to work on.
+  if ($eck_path == $entity_path_alias) {
+    return;
+  } 
+  $entity->eck_path = array(
+    'source' => $entity_path,
+    'alias' => $eck_path,
+  );
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+function eck_extras_entity_insert($entity, $type) {
+  if (isset($entity->eck_path)) {
+    path_save($entity->eck_path);
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function eck_extras_entity_update($entity, $type) {
+  if (isset($entity->eck_path)) {
+    path_save($entity->eck_path);
+  }
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+function eck_extras_entity_delete($entity, $type) {
+  // Delete the saved path alias if exists.
+  $entity_uri = $entity->uri();
+  $entity_path = $entity_uri['path'];
+  path_delete($entity_path);
+}
