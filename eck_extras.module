@@ -21,7 +21,7 @@ function eck_extras_eck_default_properties() {
   $default_properties = array();
   
   $default_properties['published'] = array(
-    'label' => t('Published'),
+    'label' => 'Published',
     'type' => 'integer',
     'behavior' => 'published',
   );
