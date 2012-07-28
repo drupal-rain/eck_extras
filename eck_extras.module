@@ -15,6 +15,21 @@ function eck_extras_ctools_plugin_directory($owner, $plugin_type) {
 }
 
 /**
+ * Implements hook_eck_default_properties().
+ */
+function eck_extras_eck_default_properties() {
+  $default_properties = array();
+  
+  $default_properties['published'] = array(
+    'label' => t('Published'),
+    'type' => 'integer',
+    'behavior' => 'published',
+  );
+  
+  return $default_properties;
+}
+
+/**
  * Helper function to get the entity types of eck module.
  */
 function eck_extras_get_entity_types() {
@@ -38,11 +53,6 @@ function eck_extras_field_extra_fields() {
   $eck_entity_types = eck_extras_get_entity_types();
   foreach ($eck_entity_types as $eck_entity_type => $eck_entity_type_bundles) {
     foreach ($eck_entity_type_bundles as $eck_bundle) {
-      $fields[$eck_entity_type][$eck_bundle]['form']['title'] = array(
-        'label' => t('Title'),
-        'description' => t('Set the title of this entity.'),
-        'weight' => -10,
-      );
       $fields[$eck_entity_type][$eck_bundle]['form']['eck_path'] = array(
         'label' => t('Path Alias'),
         'description' => t('Set the path alias of this entity.'),
@@ -50,12 +60,26 @@ function eck_extras_field_extra_fields() {
       );
       // If the entity implements the specific property behavior.
       foreach (EntityType::loadByName($eck_entity_type)->properties as $property_name => $property) {
-        if ($property['behavior'] == 'published') {
-          $fields[$eck_entity_type][$eck_bundle]['form'][$property_name] = array(
-            'label' => t($property['label']),
-            'description' => t('Set the published status of this entity.'),
-            'weight' => 100,
-          );
+        switch ($property['behavior']) {
+          case 'title':
+            $fields[$eck_entity_type][$eck_bundle]['form'][$property_name] = array(
+              'label' => t($property['label']),
+              'description' => t('Set the title of this entity.'),
+              'weight' => -10,
+            );
+            $fields[$eck_entity_type][$eck_bundle]['display'][$property_name] = array(
+              'label' => t($property['label']),
+              'description' => t('The title of this entity.'),
+              'weight' => -10,
+            );
+            break;
+          case 'published':
+            $fields[$eck_entity_type][$eck_bundle]['form'][$property_name] = array(
+              'label' => t($property['label']),
+              'description' => t('Set the published status of this entity.'),
+              'weight' => 100,
+            );
+            break;
         }
       }
     }
