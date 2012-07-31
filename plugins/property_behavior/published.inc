@@ -5,16 +5,6 @@
  * issue_status property_behavior plugin for eck.
  */
 
-/**
- * Define the published status.
- */
-define('ECK_PUBLISHED_YES', 0x01);
-
-/**
- * Define the unpublished status.
- */
-define('ECK_PUBLISHED_NO', 0x00);
-
 $plugin = array(
   'label' => t('Published'),
   'default_widget' => 'eck_extras_published_property_default_widget',
