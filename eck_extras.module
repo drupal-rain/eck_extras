@@ -365,15 +365,16 @@ function eck_extras_entity_view($entity, $type, $view_mode, $langcode) {
   $eck_entity_types = eck_extras_get_entity_types();
   if (in_array($type, array_keys($eck_entity_types))) {
     $options = variable_get("eck_{$type}_{$entity->bundle()}_options", array());
+    // $options - title.
+    if (!empty($options['title'])) {
+      $entity->title = token_replace($options['title'],
+        array(
+          $type => $entity,
+        )
+      );
+    }
     if ($view_mode == 'full') {
-      // $options - title.
-      if (!empty($options['title'])) {
-        drupal_set_title(token_replace($options['title'],
-          array(
-            $type => $entity, 
-          )
-        ));
-      }
+      // Can do somehing for 'full' view mode.
     }
     else {
       // published - property behavior temporary solution.
