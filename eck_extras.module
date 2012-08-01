@@ -244,7 +244,6 @@ function _eck_extras_entity_path_update($entity, $op = 'update') {
       || $entity->eck_path['alias'] == $entity->eck_path['source']
     ) {
       path_delete($entity->eck_path['old alias']);
-      
     }
     // Normal update.
     elseif ($entity->eck_path['alias'] != $entity->eck_path['old alias']) {
@@ -353,9 +352,12 @@ function eck_extras_entity_update($entity, $type) {
  */
 function eck_extras_entity_delete($entity, $type) {
   // Delete the saved path alias if exists.
-  $entity_uri = $entity->uri();
-  $entity_path = $entity_uri['path'];
-  path_delete($entity_path);
+  $eck_entity_types = eck_extras_get_entity_types();
+  if (in_array($type, array_keys($eck_entity_types))) {
+    $entity_uri = $entity->uri();
+    $entity_path = $entity_uri['path'];
+    path_delete($entity_path);
+  }
 }
 
 /**
@@ -366,7 +368,7 @@ function eck_extras_entity_view($entity, $type, $view_mode, $langcode) {
   if (in_array($type, array_keys($eck_entity_types))) {
     $options = variable_get("eck_{$type}_{$entity->bundle()}_options", array());
     // $options - title.
-    if (!empty($options['title'])) {
+    if (!empty($options['title']) && isset($entity->title)) {
       $entity->title = token_replace($options['title'],
         array(
           $type => $entity,
@@ -375,6 +377,13 @@ function eck_extras_entity_view($entity, $type, $view_mode, $langcode) {
     }
     if ($view_mode == 'full') {
       // Can do somehing for 'full' view mode.
+      if (!isset($entity->title) && !empty($options['title'])) {
+        drupal_set_title(token_replace($options['title'],
+          array(
+            $type => $entity,
+          )
+        ));
+      }
     }
     else {
       // published - property behavior temporary solution.
