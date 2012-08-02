@@ -48,6 +48,27 @@ function eck_extras_menu() {
 }
 
 /**
+ * Implements hook_entity_info_alter().
+ */
+function eck_extras_entity_info_alter(&$entity_info){
+  $eck_entity_types = eck_extras_get_entity_types();
+
+  foreach ($eck_entity_types as $eck_entity_type => $eck_entity_type_bundles) {
+    foreach ($eck_entity_type_bundles as $eck_bundle) {
+      $options = variable_get("eck_{$eck_entity_type}_{$eck_bundle}_options", array());
+      if (
+        count($options) > 0
+        && $options['eck_path']['classic']
+      ) {
+        $info = &$entity_info[$eck_entity_type]['bundles'][$eck_bundle]['crud']['view'];
+        $info['path'] = "{$eck_entity_type}/%";
+        $info['entity_id'] = 1;
+      }
+    }
+  }
+}
+
+/**
  * Implements hook_ctools_plugin_directory().
  */
 function eck_extras_ctools_plugin_directory($owner, $plugin_type) {
@@ -160,8 +181,8 @@ function eck_extras_field_attach_form($entity_type, $entity, &$form, &$form_stat
       '#type' => 'checkbox',
       '#title' => t('Auto Alias'),
       '#description' => t('Whether use the preset pattern path alias of this bundle.'),
-      '#default_value' => isset($options['eck_path']['on']) ? $options['eck_path']['on'] : FALSE,
-      '#disabled' => empty($options['eck_path']['on']),
+      '#default_value' => isset($options['eck_path']['auto']) ? $options['eck_path']['auto'] : FALSE,
+      '#disabled' => empty($options['eck_path']['auto']),
       '#weight' => 0,
     );
     $form['eck_path']['eck_path_alias'] = array(
@@ -227,7 +248,7 @@ function eck_extras_form_eck_path_validate($element, &$form_state, $complete_for
 function _eck_extras_entity_path_update($entity, $op = 'update') {
   $options = variable_get("eck_{$entity->entityType()}_{$entity->bundle()}_options", array());
   // Auto path alias.
-  if (isset($options['eck_path']) && $options['eck_path']['on'] && $entity->eck_path['auto']) {
+  if (isset($options['eck_path']) && $options['eck_path']['auto'] && $entity->eck_path['auto']) {
     ctools_include('pathauto', 'pathauto', FALSE);
     $data = array(
       $entity->entityType() => $entity,
