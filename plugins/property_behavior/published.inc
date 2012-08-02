@@ -15,10 +15,20 @@ $plugin = array(
  * Implements 'default_widget'.
  */
 function eck_extras_published_property_default_widget($property, $vars) {
+  $entity = $vars['entity'];
+
+  if (isset($entity->is_new) && $entity->is_new) {
+    $options = variable_get("eck_{$entity->entityType()}_{$entity->bundle()}_options");
+    $published = (int) $options['published'];
+  } 
+  else {
+    $published = isset($entity->{$property}) ? $entity->{$property} : 0;
+  }
+  
   return array(
     '#type' => 'checkbox',
     '#title' => $vars['properties'][$property]['label'],
-    '#default_value' => isset($vars['entity']->{$property}) ? $vars['entity']->{$property} : 0,
+    '#default_value' => $published,
   );
 }
 

@@ -78,7 +78,18 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
     '#weight' => 10,
   );
   // published.
-  
+  $properties = EntityType::loadByName($eck_entity_type)->properties;
+  foreach ($properties as $property_name => $property_info) {
+    if ($property_info['behavior'] == 'published') {
+      $form['published'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Default as published'),
+        '#description' => t('Set the entity to published as default.'),
+        '#default_value' => isset($options['published']) ? $options['published'] : FALSE,
+        '#weight' => 5,
+      );
+    }
+  }
   
   $form['options'] = array(
     '#type' => 'value',
@@ -107,6 +118,7 @@ function eck_extras_bundle_edit_form_submit($form, &$form_state) {
       'pattern' => $form_state['values']['eck_path_auto_pattern'],
       'classic' => (bool) $form_state['values']['eck_path_classic'],
     ),
+    'published' => (bool) $form_state['values']['published'],
   );
   // If eck_path_classic change state, clear menu cache, as it use menu_alter.
   // @see eck_extras_entity_info_alter().
