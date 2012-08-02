@@ -14,3 +14,8 @@ Change Logs
   Configuration save in variable: 'eck_{entity_type}_{bundle}_options'.
 2. Add title replace feature.
 3. Add auto alias feature, require pathauto module.
+
+
+Hook
+hook_eck_extras_pathauto_alias_alter(&$alias, &$context)
+  @see eck_extras_pathauto_create_alias().

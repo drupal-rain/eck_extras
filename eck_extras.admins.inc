@@ -40,7 +40,6 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
     '#collapsed' => !module_exists('pathauto'),
     '#title' => t('Auto Path Alias'),
     '#description' => t('Configure the auto path alias for the entities of this bundle. Require pathauto module.'),
-    '#disabled' => !module_exists('pathauto'),
     '#weight' => 2,
   );
   $form['eck_path']['eck_path_auto'] = array(
@@ -48,6 +47,7 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
     '#title' => t('Turn On'),
     '#description' => t('Whether turn on this feature for this bundle.'),
     '#default_value' => isset($options['eck_path']['on']) ? $options['eck_path']['on'] : FALSE,
+    '#disabled' => !module_exists('pathauto'),
     '#weight' => 0,
   );
   $form['eck_path']['eck_path_auto_pattern'] = array(
@@ -56,6 +56,7 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
     '#title' => t('Pattern'),
     '#description' => t('Configure the path alias pattern.'),
     '#default_value' => isset($options['eck_path']['pattern']) ? $options['eck_path']['pattern'] : '',
+    '#disabled' => !module_exists('pathauto'),
     '#weight' => 2,
   );
   $form['eck_path']['eck_path_replacement'] = array(
