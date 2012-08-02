@@ -86,7 +86,7 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
         '#title' => t('Default as published'),
         '#description' => t('Set the entity to published as default.'),
         '#default_value' => isset($options['published']) ? $options['published'] : FALSE,
-        '#weight' => 5,
+        '#weight' => 20,
       );
     }
   }
