@@ -56,10 +56,10 @@ function eck_extras_entity_info_alter(&$entity_info){
   foreach ($eck_entity_types as $eck_entity_type => $eck_entity_type_bundles) {
     foreach ($eck_entity_type_bundles as $eck_bundle) {
       $options = variable_get("eck_{$eck_entity_type}_{$eck_bundle}_options", array());
-      if (
-        count($options) > 0
-        && $options['eck_path']['classic']
-      ) {
+      if (count($options) == 0) {
+        continue;
+      }
+      if ($options['eck_path']['classic']) {
         $info = &$entity_info[$eck_entity_type]['bundles'][$eck_bundle]['crud']['view'];
         $info['path'] = "{$eck_entity_type}/%";
         $info['entity_id'] = 1;
@@ -157,15 +157,23 @@ function eck_extras_field_extra_fields() {
 function eck_extras_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode) {
   $eck_entity_types = eck_extras_get_entity_types();
   if (in_array($entity_type, array_keys($eck_entity_types))) {
-    $entity_uri = $entity->uri();
-    $entity_path = $entity_uri['path'];
-    $entity_path_alias = drupal_get_path_alias($entity_path, $langcode);
-    // If it has a alias already, show it.
-    if ($entity_path_alias != $entity_path) {
-      $entity_path_default = $entity_path_alias;
+    if (isset($entity->is_new) && $entity->is_new) {
+      // source.
+      $entity_path = '';
+      // old alias.
+      $entity_path_default = '';
     }
     else {
-      $entity_path_default = '';
+      $entity_uri = $entity->uri();
+      $entity_path = $entity_uri['path'];
+      $entity_path_alias = drupal_get_path_alias($entity_path, $langcode);
+      // If it has a alias already, show it.
+      if ($entity_path_alias != $entity_path) {
+        $entity_path_default = $entity_path_alias;
+      }
+      else {
+        $entity_path_default = '';
+      }
     }
     $options = variable_get("eck_{$entity_type}_{$entity->bundle()}_options", array());
     $form['eck_path'] = array(
@@ -193,6 +201,7 @@ function eck_extras_field_attach_form($entity_type, $entity, &$form, &$form_stat
       '#default_value' => $entity_path_default,
       '#weight' => 1,
     );
+    // If is_new, may only save as empty ''.
     $form['eck_path']['eck_path_old_alias'] = array(
       '#type' => 'value',
       '#value' => $entity_path_default,
@@ -247,14 +256,21 @@ function eck_extras_form_eck_path_validate($element, &$form_state, $complete_for
  */
 function _eck_extras_entity_path_update($entity, $op = 'update') {
   $options = variable_get("eck_{$entity->entityType()}_{$entity->bundle()}_options", array());
+  $langcode = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
+  // Need to add back real value of 'source' and 'old alias' if it's new entity.
+  if ($op == 'insert') {
+    $entity_uri = $entity->uri();
+    $entity->eck_path['source'] = $entity_uri['path'];
+    $entity->eck_path['old alias'] = drupal_get_path_alias($entity_uri['path'], $langcode);
+  }
   // Auto path alias.
   if (isset($options['eck_path']) && $options['eck_path']['auto'] && $entity->eck_path['auto']) {
     ctools_include('pathauto', 'pathauto', FALSE);
     $data = array(
       $entity->entityType() => $entity,
     );
-    $language = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
-    eck_extras_pathauto_create_alias($op, $options['eck_path']['pattern'], $entity->eck_path['source'], $data, $language);
+    
+    eck_extras_pathauto_create_alias($op, $options['eck_path']['pattern'], $entity->eck_path['source'], $data, $langcode);
   }
   // Manual path alias.
   else {
@@ -376,10 +392,10 @@ function eck_extras_entity_delete($entity, $type) {
   $eck_entity_types = eck_extras_get_entity_types();
   if (in_array($type, array_keys($eck_entity_types))) {
     $entity_uri = $entity->uri();
-    $entity_path = $entity_uri['path'];
-    path_delete($entity_path);
+    path_delete(array('source' => $entity_uri['path']));
   }
 }
+
 
 /**
  * Implements hook_entity_view().
@@ -414,4 +430,12 @@ function eck_extras_entity_view($entity, $type, $view_mode, $langcode) {
       }
     }
   }
+}
+
+/**
+ * Implements hook_field_attach_delete_bundle().
+ */
+function eck_extras_field_attach_delete_bundle($entity_type, $bundle, $instances) {
+  // Temporary solution, will change if eck has bundle delete hook.
+  variable_del("eck_{$entity_type}_{$bundle}_options");
 }

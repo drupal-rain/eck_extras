@@ -46,7 +46,7 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
     '#type' => 'checkbox',
     '#title' => t('Turn On'),
     '#description' => t('Whether turn on this feature for this bundle.'),
-    '#default_value' => isset($options['eck_path']['on']) ? $options['eck_path']['on'] : FALSE,
+    '#default_value' => isset($options['eck_path']['auto']) ? $options['eck_path']['auto'] : FALSE,
     '#disabled' => !module_exists('pathauto'),
     '#weight' => 0,
   );
@@ -91,6 +91,12 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
       );
     }
   }
+  if (!isset($form['published'])) {
+    $form['published'] = array(
+      '#type' => 'value',
+      '#value' => TRUE,
+    );
+  }
   
   $form['options'] = array(
     '#type' => 'value',
@@ -124,8 +130,8 @@ function eck_extras_bundle_edit_form_submit($form, &$form_state) {
   // If eck_path_classic change state, clear menu cache, as it use menu_alter.
   // @see eck_extras_entity_info_alter().
   if (
-    !isset($options_old)
-    || (isset($options_old) && $options_old['eck_path']['classic'] != $options['eck_path']['classic'])
+    (count($options_old) == 0 && $options['eck_path']['classic'])
+    || (count($options_old) > 0 && $options_old['eck_path']['classic'] != $options['eck_path']['classic'])
   ) {
     entity_info_cache_clear();
     menu_rebuild();
