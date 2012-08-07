@@ -96,7 +96,7 @@ function eck_extras_eck_default_properties() {
  * Helper function to get the entity types of eck module.
  */
 function eck_extras_get_entity_types() {
-  $eck_entity_types = &drupal_static(__FUNCTION__);
+  $eck_entity_types = &drupal_static(__FUNCTION__, array());
   if (!isset($eck_entity_types)) {
     foreach (EntityType::loadAll() as $eck_entity_type) {
       foreach (Bundle::loadByEntityType($eck_entity_type) as $eck_bundle) {
@@ -396,7 +396,6 @@ function eck_extras_entity_delete($entity, $type) {
   }
 }
 
-
 /**
  * Implements hook_entity_view().
  */
@@ -421,11 +420,16 @@ function eck_extras_entity_view($entity, $type, $view_mode, $langcode) {
           )
         ));
       }
+      // published - property behavior temporary solution.
+      // @todo Untill fix http://drupal.org/node/1694798.
+      if (isset($entity->published) && $entity->published == ECK_PUBLISHED_NO) {
+        $entity->content['#access'] = user_access('eck administer ' . $entity->entityType() . ' ' . $entity->bundle() . ' entities');
+      }
     }
     else {
       // published - property behavior temporary solution.
       // @todo Untill fix http://drupal.org/node/1694798.
-      if ($entity->published == ECK_PUBLISHED_NO) {
+      if (isset($entity->published) && $entity->published == ECK_PUBLISHED_NO) {
         $entity->content['#access'] = user_access('eck administer ' . $entity->entityType() . ' ' . $entity->bundle() . ' entities');
       }
     }
