@@ -1,0 +1,55 @@
+<?php
+
+/**
+ * @file
+ * .install file of eck_extras.
+ */
+
+// @todo Install, Uninstall tasks. 
+
+/**
+ * Implements hook_install().
+ */
+function eck_extras_install() {
+  // Required to alter form after ds_forms.
+  $weight_ds_forms = db_select('system', 's')
+    ->fields('s', array('weight'))
+    ->condition('type', 'module')
+    ->condition('name', 'ds_forms')
+    ->execute()
+    ->fetchField();
+  db_update('system')
+    ->fields(array('weight' => $weight_ds_forms + 1))
+    ->condition('type', 'module')
+    ->condition('name', 'eck_extras')
+    ->execute();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function eck_extras_uninstall() {
+  $eck_entity_types = eck_extras_get_entity_types();
+  foreach ($eck_entity_types as $eck_entity_type => $eck_entity_type_bundles) {
+    foreach ($eck_entity_type_bundles as $eck_bundle) {
+      variable_del("eck_{$eck_entity_type}_{$eck_bundle}_options");
+    }
+  }
+}
+
+/**
+ * Implements hook_update_N().
+ */
+function eck_extras_update_7200(&$sandbox) {
+  // Required to alter form after ds_forms.
+  $weight_ds_forms = db_select('system', 's')
+    ->fields('s', array('weight'))
+    ->condition('type', 'module')
+    ->condition('name', 'ds_forms')
+    ->execute()
+    ->fetchField();
+  db_update('system')->fields(array('weight' => $weight_ds_forms + 1))
+    ->condition('type', 'module')
+    ->condition('name', 'eck_extras')
+    ->execute();
+}
