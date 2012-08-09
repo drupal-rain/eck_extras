@@ -97,7 +97,7 @@ function eck_extras_eck_default_properties() {
  */
 function eck_extras_get_entity_types() {
   $eck_entity_types = &drupal_static(__FUNCTION__, array());
-  if (!isset($eck_entity_types)) {
+  if (count($eck_entity_types) == 0) {
     foreach (EntityType::loadAll() as $eck_entity_type) {
       foreach (Bundle::loadByEntityType($eck_entity_type) as $eck_bundle) {
         $eck_entity_types[$eck_entity_type->name][] = $eck_bundle->name;
