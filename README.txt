@@ -1,4 +1,5 @@
-Property Behavior:
+=== Property Behavior ===
+
 Published: Type(Interger/Unsigned Integer), like node published function.
 
 Pseudo Field:
@@ -7,7 +8,11 @@ eck_path: Set the path alias of the entity.
 Pseudo Field for Property Behavior: (Use Field UI to sort.)
 title, published.
 
-Change Logs
+=== Integration ===
+1. Pathauto
+2. Dispay Suite
+
+=== Change Logs ===
 
 7.x-1.x -> 7.x-2.x
 1. Version 2 add configuration form for each bundle created by eck.
@@ -16,6 +21,6 @@ Change Logs
 3. Add auto alias feature, require pathauto module.
 
 
-Hook
+=== API Hook ===
 hook_eck_extras_pathauto_alias_alter(&$alias, &$context)
   @see eck_extras_pathauto_create_alias().
