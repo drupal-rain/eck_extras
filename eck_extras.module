@@ -122,30 +122,25 @@ function eck_extras_field_extra_fields() {
       $fields[$eck_entity_type][$eck_bundle]['form']['eck_path'] = array(
         'label' => t('Path Alias'), 
         'description' => t('Set the path alias of this entity.'), 
-        'weight' => 100
+        'weight' => 100,
       );
       // If the entity implements the specific property behavior.
+      $properties_plugin_info = ctools_get_plugins('eck', 'property_behavior'); 
       foreach (EntityType::loadByName($eck_entity_type)->properties as $property_name => $property) {
-        switch ($property['behavior']) {
-          case 'title' :
-            $fields[$eck_entity_type][$eck_bundle]['form'][$property_name] = array(
-              'label' => t($property['label']), 
-              'description' => t('Set the title of this entity.'), 
-              'weight' => -10
-            );
-            $fields[$eck_entity_type][$eck_bundle]['display'][$property_name] = array(
-              'label' => t($property['label']), 
-              'description' => t('The title of this entity.'), 
-              'weight' => -10
-            );
-            break;
-          case 'published' :
-            $fields[$eck_entity_type][$eck_bundle]['form'][$property_name] = array(
-              'label' => t($property['label']), 
-              'description' => t('Set the published status of this entity.'), 
-              'weight' => 100
-            );
-            break;
+        // Add to form if the property behavior implements 'default_widget'.
+        if (isset($properties_plugin_info[$property_name]['default_widget'])) {
+          $fields[$eck_entity_type][$eck_bundle]['form'][$property_name] = array(
+            'label' => t($property['label']),
+            'description' => t('Property ' . $property_name . '.'),
+            'weight' => 0,
+          );
+        }
+        if (isset($properties_plugin_info[$property_name]['default_formatter'])) {
+          $fields[$eck_entity_type][$eck_bundle]['display'][$property_name] = array(
+            'label' => t($property['label']),
+            'description' => t('Property ' . $property_name . '.'),
+            'weight' => 0,
+          );
         }
       }
     }
