@@ -26,14 +26,14 @@ function eck_extras_menu() {
   foreach ($eck_entity_types as $eck_entity_type => $eck_entity_type_bundles) {
     foreach ($eck_entity_type_bundles as $eck_bundle) {
       $items["{$eck_path}/{$eck_entity_type}/{$eck_bundle}/edit"] = array(
-        'title' => t('Edit'), 
+        'title' => 'Edit', 
         'access callback' => 'eck__multiple_access_check', 
         'access arguments' => array(
           array(
             'eck administer bundles', 
             'eck edit bundles', 
             "eck administer {$eck_entity_type} bundles", 
-            "eck edit {$eck_entity_type} bundles"
+            "eck edit {$eck_entity_type} bundles",
           )
         ), 
         'page callback' => 'drupal_get_form', 
@@ -42,7 +42,8 @@ function eck_extras_menu() {
           $eck_entity_type, 
           $eck_bundle), 
         'file' => 'eck_extras.admins.inc', 
-        'type' => MENU_LOCAL_TASK);
+        'type' => MENU_LOCAL_TASK,
+      );
     }
   }
   
@@ -482,3 +483,48 @@ function eck_extras_form_field_ui_field_overview_form_alter(&$form, &$form_state
   }
 }
 
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Allow change label of the properties.
+ * @see eck__properties__form().
+ */
+function eck_extras_form_eck__properties__form_alter(&$form, &$form_state) {
+  $eck_entity_type = $form['entity_type']['#value'];
+  $form['property_label'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#title' => t('Label of Property'),
+    '#description' => t('Change the label of the property.'),
+    '#weight' => 0,
+  );
+  $delta = 0;
+  foreach ($eck_entity_type->properties as $property_name => $property) {
+    $form['property_label']['property_label_' . $property_name] = array(
+      '#type' => 'textfield',
+      '#size' => 60,
+      '#title' => t('@name\'s Label', array('@name' => $property_name)),
+      '#default_value' => $property['label'],
+      '#weight' => $delta,      
+    );
+    $delta++;
+  }
+  $form['#submit'][] = 'eck_extras_form_eck__properties__form_alter_submit';
+}
+
+/**
+ * Submit function for eck_extras_form_eck__properties__form_alter().
+ */
+function eck_extras_form_eck__properties__form_alter_submit($form, &$form_state) {
+  $eck_entity_type = $form['entity_type']['#value'];
+  // Due to overload magic __get(), set(). Can't directly change.
+  $properties = $eck_entity_type->properties;
+  foreach ($properties as $property_name => $property) {
+    if ($property['label'] != $form_state['values']['property_label_' . $property_name]) {
+      $properties[$property_name]['label'] = $form_state['values']['property_label_' . $property_name];
+    }
+  }
+  $eck_entity_type->properties = $properties;
+  $eck_entity_type->save();
+}

@@ -1,16 +1,16 @@
-=== Property Behavior ===
+=== Feature ===
+1. Property Behavior: 
+  * Published: Type(Interger/Unsigned Integer), like node published function.
+2. Path and Pathauto per bundle and per entity.
+3. Property Lable change after it's created.
 
-Published: Type(Interger/Unsigned Integer), like node published function.
+== Planed Feature ==
 
-Pseudo Field:
-eck_path: Set the path alias of the entity.
-
-Pseudo Field for Property Behavior: (Use Field UI to sort.)
-title, published.
 
 === Integration ===
-1. Pathauto
-2. Dispay Suite
+1. Field UI: title, published, eck_path.
+1. Pathauto.
+2. Dispay Suite.
 
 === Change Logs ===
 
