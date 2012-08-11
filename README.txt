@@ -1,26 +1,15 @@
-=== Feature ===
-1. Property Behavior: 
-  * Published: Type(Interger/Unsigned Integer), like node published function.
-2. Path and Pathauto per bundle and per entity.
-3. Property Lable change after it's created.
+# Feature
+* Path for ECK
+  - Path setting per entitty
+  - Integrate with pathauto, auto path alias setting per bundle
+* Property Behavior 
+  - Published: Type(Interger/Unsigned Integer), like node published function.
+* Property Setting
+  - Property Lable change after it's created.
+* Field UI & Display
+  - Make title, published, eck_path sortable.
+  - Integrate with Dispay Suite. 
 
-== Planed Feature ==
-
-
-=== Integration ===
-1. Field UI: title, published, eck_path.
-2. Pathauto.
-3. Dispay Suite.
-
-=== Change Logs ===
-
-7.x-1.x -> 7.x-2.x
-1. Version 2 add configuration form for each bundle created by eck.
-  Configuration save in variable: 'eck_{entity_type}_{bundle}_options'.
-2. Add title replace feature.
-3. Add auto alias feature, require pathauto module.
-
-
-=== API Hook ===
-hook_eck_extras_pathauto_alias_alter(&$alias, &$context)
-  @see eck_extras_pathauto_create_alias().
+# Planed Feature
+  - Integrate with panelizer.
+  - Add Property Behavior: Machine Name.
