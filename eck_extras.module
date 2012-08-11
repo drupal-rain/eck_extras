@@ -236,7 +236,8 @@ function eck_extras_form_eck_path_validate($element, &$form_state, $complete_for
   if (!$auto && $alias != $old_alias) {
     global $language;
     $langcode = $language->language;
-    $query = db_select('url_alias', 'ua')->fields('ua', array('pid'))
+    $query = db_select('url_alias', 'ua')
+      ->fields('ua', array('pid'))
       ->condition('ua.source', $old_alias, '<>')
       ->condition('ua.alias', $alias, '=')
       ->condition('ua.language', array($langcode, LANGUAGE_NONE), 'IN')
@@ -356,6 +357,24 @@ function eck_extras_pathauto_create_alias($op, $pattern, $source, $data, $langua
   $path = _pathauto_set_alias($path, $existing_alias, $op);
   
   return $path;
+}
+
+/**
+ * Callback function for Machine Name property.
+ */
+function eck_extras_machine_name_exists($value, $element, &$form_state) {
+  $entity = $form_state['values']['entity'];
+  $property = $element['#name'];
+  $value = $element['#value'];
+  $result = db_select("eck_{$entity->entityType()}", 't')
+    ->fields('t', array('id'))
+    ->condition("{$property}", $value, '=')
+    ->execute()
+    ->fetchField();
+  if (!empty($result)) {
+    return TRUE;
+  }
+  return FALSE;
 }
 
 /**
@@ -491,7 +510,7 @@ function eck_extras_form_field_ui_field_overview_form_alter(&$form, &$form_state
  */
 function eck_extras_form_eck__properties__form_alter(&$form, &$form_state) {
   $eck_entity_type = $form['entity_type']['#value'];
-  $form['property_label'] = array(
+  $form['eck_property_label'] = array(
     '#type' => 'fieldset',
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
@@ -501,7 +520,7 @@ function eck_extras_form_eck__properties__form_alter(&$form, &$form_state) {
   );
   $delta = 0;
   foreach ($eck_entity_type->properties as $property_name => $property) {
-    $form['property_label']['property_label_' . $property_name] = array(
+    $form['eck_property_label']['eck_property_label_' . $property_name] = array(
       '#type' => 'textfield',
       '#size' => 60,
       '#title' => t('@name\'s Label', array('@name' => $property_name)),
@@ -520,12 +539,18 @@ function eck_extras_form_eck__properties__form_alter_submit($form, &$form_state)
   $eck_entity_type = $form['entity_type']['#value'];
   // Due to overload magic __get(), set(). Can't directly change.
   $properties = $eck_entity_type->properties;
+  $changes = 0;
   foreach ($properties as $property_name => $property) {
-    if (isset($form_state['values']['property_label_' . $property_name])
-      && $property['label'] != $form_state['values']['property_label_' . $property_name]
+    if (isset($form_state['values']['eck_property_label_' . $property_name])
+      && $property['label'] != $form_state['values']['eck_property_label_' . $property_name]
     ) {
-      $properties[$property_name]['label'] = $form_state['values']['property_label_' . $property_name];
+      $properties[$property_name]['label'] = $form_state['values']['eck_property_label_' . $property_name];
+      $changes++;
     }
   }
-  $eck_entity_type->properties = $properties;
+  // Only save if has change.
+  if ($changes > 0) {
+    $eck_entity_type->properties = $properties;
+    $eck_entity_type->save();
+  }
 }

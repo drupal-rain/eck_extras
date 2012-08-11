@@ -4,6 +4,7 @@
   - Integrate with pathauto, auto path alias setting per bundle
 * Property Behavior 
   - Published: Type(Interger/Unsigned Integer), like node published function.
+  - Machine Name: Type(Text), machine_name for title.
 * Property Setting
   - Property Lable change after it's created.
 * Field UI & Display
@@ -12,4 +13,6 @@
 
 # Planed Feature
   - Integrate with panelizer.
-  - Add Property Behavior: Machine Name.
+
+# Todo
+  - Add index to propety behavior type, even choosable.
