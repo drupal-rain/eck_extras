@@ -40,6 +40,7 @@ function eck_extras_machine_name_property_default_widget($property, $vars) {
  * Implements default_formatter.
  */
 function eck_extras_machine_name_property_default_formatter($property, $vars) {
+  $entity = $vars['entity'];
   return array(
     '#markup' => strip_tags($entity->{$property}),
   );
