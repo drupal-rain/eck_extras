@@ -9,8 +9,8 @@
 
 === Integration ===
 1. Field UI: title, published, eck_path.
-1. Pathauto.
-2. Dispay Suite.
+2. Pathauto.
+3. Dispay Suite.
 
 === Change Logs ===
 
