@@ -510,13 +510,13 @@ function eck_extras_form_eck__properties__form_alter(&$form, &$form_state) {
     );
     $delta++;
   }
-  $form['#validate'][] = 'eck_extras_form_eck__properties__form_alter_validate';
+  $form['#submit'][] = 'eck_extras_form_eck__properties__form_alter_submit';
 }
 
 /**
- * Validate function for eck_extras_form_eck__properties__form_alter().
+ * Submit function for eck_extras_form_eck__properties__form_alter().
  */
-function eck_extras_form_eck__properties__form_alter_validate($form, &$form_state) {
+function eck_extras_form_eck__properties__form_alter_submit($form, &$form_state) {
   $eck_entity_type = $form['entity_type']['#value'];
   // Due to overload magic __get(), set(). Can't directly change.
   $properties = $eck_entity_type->properties;
