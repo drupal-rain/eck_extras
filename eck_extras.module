@@ -54,7 +54,9 @@ function eck_extras_menu() {
  * Implements hook_entity_info_alter().
  */
 function eck_extras_entity_info_alter(&$entity_info) {
+  // Alter the Entity CRUD Paths.
   $eck_entity_types = eck_extras_get_entity_types();
+  $crud = array('view', 'add', 'edit', 'delete');
   
   foreach ($eck_entity_types as $eck_entity_type => $eck_entity_type_bundles) {
     foreach ($eck_entity_type_bundles as $eck_bundle) {
@@ -62,10 +64,14 @@ function eck_extras_entity_info_alter(&$entity_info) {
       if (count($options) == 0) {
         continue;
       }
-      if ($options['eck_path']['classic']) {
-        $info = &$entity_info[$eck_entity_type]['bundles'][$eck_bundle]['crud']['view'];
-        $info['path'] = "{$eck_entity_type}/%";
-        $info['entity_id'] = 1;
+      foreach ($crud as $op) {
+        if (!empty($options['eck_crud'][$op])) {
+          $info = &$entity_info[$eck_entity_type]['bundles'][$eck_bundle]['crud'];
+          $info[$op]['path'] = $options['eck_crud'][$op];
+          if ($op != 'add') {
+            $info[$op]['entity_id'] = array_search('%', explode('/', $options['eck_crud'][$op]));
+          }
+        }
       }
     }
   }

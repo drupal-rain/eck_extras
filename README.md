@@ -1,7 +1,8 @@
 # Feature
 * Path for ECK
-  - Path setting per entitty
-  - Integrate with pathauto, auto path alias setting per bundle
+  - Path setting per entitty.
+  - Integrate with pathauto, auto path alias setting per bundle.
+  - Allow Entity CRUD Path setting per bundle.
 * Property Behavior 
   - Published: Type(Interger/Unsigned Integer), like node published function.
   - Machine Name: Type(Text), machine_name for title.
@@ -10,6 +11,8 @@
 * Field UI & Display
   - Make title, published, eck_path sortable.
   - Integrate with Dispay Suite. 
+
+# Setting for Bundle
 
 # Planed Feature
   - Integrate with panelizer.

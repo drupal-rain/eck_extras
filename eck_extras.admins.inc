@@ -64,19 +64,48 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
     '#title' => t('Path Token Replacement'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
-    '#description' => theme('token_tree',
-      array(
-        'token_types' => array($eck_entity_type),
-      )
-    ),
+    '#description' => theme('token_tree', array('token_types' => array($eck_entity_type),)),
     '#weight' => 5,
   );
-  $form['eck_path']['eck_path_classic'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Use [entity_type]/[id]'),
-    '#description' => t('Use classic path pattern [entity_type]/[id], use menu_alter, may take a while to rebuild the menu.'),
-    '#default_value' => isset($options['eck_path']['classic']) ? $options['eck_path']['classic'] : FALSE,
-    '#weight' => 10,
+  $form['eck_crud'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#title' => t('CRUD Paths'),
+    '#description' => t('Configure the crud paths setting for this bundle.'),
+    '#weight' => 5,
+  );
+  $form['eck_crud']['eck_crud_view'] = array(
+    '#type' => 'textfield',
+    '#size' => 60,
+    '#title' => t('Entity View Path'),
+    '#description' => t("Use '%' for the entity id placeholder. e.g. ENTITY_TYPE/BUNDLE/%"),
+    '#default_value' => isset($options['eck_crud']['view']) ? $options['eck_crud']['view'] : '',
+    '#weight' => 0,
+  );
+  $form['eck_crud']['eck_crud_add'] = array(
+    '#type' => 'textfield',
+    '#size' => 60,
+    '#title' => t('Entity Add Path'),
+    '#description' => t('e.g. ENTITY_TYPE/BUNDLE/add'),
+    '#default_value' => isset($options['eck_crud']['add']) ? $options['eck_crud']['add'] : '',
+    '#weight' => 1,
+  );
+  $form['eck_crud']['eck_crud_edit'] = array(
+    '#type' => 'textfield',
+    '#size' => 60,
+    '#title' => t('Entity Edit Path'),
+    '#description' => t("Use '%' for the entity id placeholder. e.g. ENTITY_TYPE/BUNDLE/%/edit"),
+    '#default_value' => isset($options['eck_crud']['edit']) ? $options['eck_crud']['edit'] : '',
+    '#weight' => 2,
+  );
+  $form['eck_crud']['eck_crud_delete'] = array(
+    '#type' => 'textfield',
+    '#size' => 60,
+    '#title' => t('Entity Delete Path'),
+    '#description' => t("Use '%' for the entity id placeholder. e.g. ENTITY_TYPE/BUNDLE/%/delete"),
+    '#default_value' => isset($options['eck_crud']['delete']) ? $options['eck_crud']['delete'] : '',
+    '#weight' => 3,
   );
   // published.
   $properties = EntityType::loadByName($eck_entity_type)->properties;
@@ -123,19 +152,46 @@ function eck_extras_bundle_edit_form_submit($form, &$form_state) {
     'eck_path' => array(
       'auto' => (bool) $form_state['values']['eck_path_auto'],
       'pattern' => $form_state['values']['eck_path_auto_pattern'],
-      'classic' => (bool) $form_state['values']['eck_path_classic'],
+    ),
+    'eck_crud' => array(
+      'view' => $form_state['values']['eck_crud_view'],
+      'add' => $form_state['values']['eck_crud_add'],
+      'edit' => $form_state['values']['eck_crud_edit'],
+      'delete' => $form_state['values']['eck_crud_delete'],
     ),
     'published' => (bool) $form_state['values']['published'],
   );
-  // If eck_path_classic change state, clear menu cache, as it use menu_alter.
+  // Save the configuration.
+  variable_set("eck_{$form_state['eck_entity_type']}_{$form_state['eck_bundle']}_options", $options);
+  
+  // If eck_crud_* change state, clear menu cache, as it use menu_alter.
   // @see eck_extras_entity_info_alter().
-  if (
-    (count($options_old) == 0 && $options['eck_path']['classic'])
-    || (count($options_old) > 0 && $options_old['eck_path']['classic'] != $options['eck_path']['classic'])
-  ) {
+  if (_eck_extras_crud_changed($options_old, $options)) {
     entity_info_cache_clear();
     menu_rebuild();
   }
-
-  variable_set("eck_{$form_state['eck_entity_type']}_{$form_state['eck_bundle']}_options", $options);
 }
+
+/**
+ * Helper function for checking if the eck_crud configuration is changed.
+ */
+function _eck_extras_crud_changed($options_old, $options_new) {
+  $crud = array('view', 'add', 'edit', 'delete');
+  // Initiate configuration.
+  if (count($options_old) == 0) {
+    foreach ($crud as $op) {
+      if (!empty($options_new['eck_crud'][$op])) {
+        return TRUE;
+      }
+    }
+  }
+  // Update configuration.
+  else {
+    foreach ($crud as $op) {
+      if ($options_old['eck_crud'][$op] != $options_new['eck_crud'][$op]) {
+        return TRUE;
+      }
+    }
+  }
+}
+
