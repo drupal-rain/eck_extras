@@ -95,7 +95,12 @@ function eck_extras_eck_default_properties() {
   $default_properties['published'] = array(
     'label' => 'Published', 
     'type' => 'integer', 
-    'behavior' => 'published'
+    'behavior' => 'published',
+  );
+  $default_properties['machine_name'] = array(
+    'label' => 'Machine Name',
+    'type' => 'text',
+    'behavior' => 'machine_name',
   );
   
   return $default_properties;
