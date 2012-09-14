@@ -146,6 +146,7 @@ function eck_extras_field_extra_fields() {
             'weight' => 0,
           );
         }
+        // Add to display if the property behavior implements 'default_formatter'.
         if (isset($properties_plugin_info[$property_name]['default_formatter'])) {
           $fields[$eck_entity_type][$eck_bundle]['display'][$property_name] = array(
             'label' => t($property['label']),
