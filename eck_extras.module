@@ -41,7 +41,7 @@ function eck_extras_menu() {
           'eck_extras_bundle_edit_form', 
           $eck_entity_type, 
           $eck_bundle), 
-        'file' => 'eck_extras.admins.inc', 
+        'file' => 'eck_extras.admin.inc', 
         'type' => MENU_LOCAL_TASK,
       );
     }
