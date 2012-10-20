@@ -16,38 +16,18 @@ define('ECK_PUBLISHED_YES', 0x01);
 define('ECK_PUBLISHED_NO', 0x00);
 
 /**
- * Implements hook_menu().
+ * Implements hook_form_FORM_ID_alter().
+ * 
+ * Add configuration to bundle edit form. 
  */
-function eck_extras_menu() {
-  $items = array();
-  $eck_entity_types = eck_extras_get_entity_types();
-  $eck_path = eck__entity_type__path();
+function eck_extras_form_eck__bundle__edit_form_alter(&$form, &$form_state, $form_id) {
+  module_load_include('inc', 'eck_extras', 'eck_extras.admin');
+  $eck_entity_type = $form['entity_type']['#value']->name;
+  $eck_bundle = $form['bundle']['#value']->name;
   
-  foreach ($eck_entity_types as $eck_entity_type => $eck_entity_type_bundles) {
-    foreach ($eck_entity_type_bundles as $eck_bundle) {
-      $items["{$eck_path}/{$eck_entity_type}/{$eck_bundle}/edit"] = array(
-        'title' => 'Edit', 
-        'access callback' => 'eck__multiple_access_check', 
-        'access arguments' => array(
-          array(
-            'eck administer bundles', 
-            'eck edit bundles', 
-            "eck administer {$eck_entity_type} bundles", 
-            "eck edit {$eck_entity_type} bundles",
-          )
-        ), 
-        'page callback' => 'drupal_get_form', 
-        'page arguments' => array(
-          'eck_extras_bundle_edit_form', 
-          $eck_entity_type, 
-          $eck_bundle), 
-        'file' => 'eck_extras.admin.inc', 
-        'type' => MENU_LOCAL_TASK,
-      );
-    }
-  }
+  $form = eck_extras_bundle_edit_form($form, $form_state, $eck_entity_type, $eck_bundle);
   
-  return $items;
+  return($form);
 }
 
 /**

@@ -132,11 +132,7 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
     '#value' => $options,
   );
   
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Submit'),
-    '#weight' => 100,
-  );
+  $form['#submit'][] = 'eck_extras_bundle_edit_form_submit';
   
   return $form;
 }
