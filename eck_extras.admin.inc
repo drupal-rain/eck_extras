@@ -11,7 +11,7 @@
 function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck_bundle) {
   $form_state['eck_entity_type'] = $eck_entity_type;
   $form_state['eck_bundle'] = $eck_bundle;
-  $options = variable_get("eck_{$form_state['eck_entity_type']}_{$form_state['eck_bundle']}_options", array());
+  $options = $form['bundle']['#value']->config;
   // title.
   $form['title'] = array(
     '#type' => 'textfield',
@@ -127,11 +127,6 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
     );
   }
   
-  $form['options'] = array(
-    '#type' => 'value',
-    '#value' => $options,
-  );
-  
   $form['#submit'][] = 'eck_extras_bundle_edit_form_submit';
   
   return $form;
@@ -141,7 +136,7 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
  * Submit for eck_extras_bundle_edit_form().
  */
 function eck_extras_bundle_edit_form_submit($form, &$form_state) {
-  $options_old = $form_state['values']['options'];
+  $options_old = $form['bundle']['#value']->config;
   // Structure of the bundle configuration.
   $options = array(
     'title' => $form_state['values']['title'],
@@ -158,7 +153,8 @@ function eck_extras_bundle_edit_form_submit($form, &$form_state) {
     'published' => (bool) $form_state['values']['published'],
   );
   // Save the configuration.
-  variable_set("eck_{$form_state['eck_entity_type']}_{$form_state['eck_bundle']}_options", $options);
+  $form['bundle']['#value']->config = array_merge($options_old, $options);
+  $form['bundle']['#value']->save();
   
   // If eck_crud_* change state, clear menu cache, as it use menu_alter.
   // @see eck_extras_entity_info_alter().

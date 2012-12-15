@@ -165,7 +165,7 @@ function eck_extras_field_attach_form($entity_type, $entity, &$form, &$form_stat
         $entity_path_default = '';
       }
     }
-    $options = variable_get("eck_{$entity_type}_{$entity->bundle()}_options", array());
+    $options = bundle::loadByMachineName("{$entity_type}_{$entity->bundle()}")->config;
     $form['eck_path'] = array(
       '#type' => 'fieldset', 
       '#collapsible' => TRUE, 
@@ -244,7 +244,7 @@ function eck_extras_form_eck_path_validate($element, &$form_state, $complete_for
  * Helper function for updating the path of the entity by eck_path.
  */
 function _eck_extras_entity_path_update($entity, $op = 'update') {
-  $options = variable_get("eck_{$entity->entityType()}_{$entity->bundle()}_options", array());
+  $options = $options = bundle::loadByMachineName("{$entity->entityType()}_{$entity->bundle()}")->config;
   $langcode = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
   // Need to add back real value of 'source' and 'old alias' if it's new entity.
   if ($op == 'insert') {
@@ -400,7 +400,7 @@ function eck_extras_entity_delete($entity, $type) {
 function eck_extras_entity_view($entity, $type, $view_mode, $langcode) {
   $eck_entity_types = eck_extras_get_entity_types();
   if (in_array($type, array_keys($eck_entity_types))) {
-    $options = variable_get("eck_{$type}_{$entity->bundle()}_options", array());
+    $options = bundle::loadByMachineName("{$type}_{$entity->bundle()}")->config;
     // $options - title.
     if (!empty($options['title']) && isset($entity->title)) {
       $entity->title = token_replace($options['title'], array($type => $entity));
@@ -424,14 +424,6 @@ function eck_extras_entity_view($entity, $type, $view_mode, $langcode) {
       }
     }
   }
-}
-
-/**
- * Implements hook_field_attach_delete_bundle().
- */
-function eck_extras_field_attach_delete_bundle($entity_type, $bundle, $instances) {
-  // Temporary solution, will change if eck has bundle delete hook.
-  variable_del("eck_{$entity_type}_{$bundle}_options");
 }
 
 /**
