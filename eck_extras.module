@@ -40,7 +40,7 @@ function eck_extras_entity_info_alter(&$entity_info) {
   
   foreach ($eck_entity_types as $eck_entity_type => $eck_entity_type_bundles) {
     foreach ($eck_entity_type_bundles as $eck_bundle) {
-      $options = variable_get("eck_{$eck_entity_type}_{$eck_bundle}_options", array());
+      $options = bundle::loadByMachineName("{$eck_entity_type}_{$eck_bundle}")->config;
       if (count($options) == 0) {
         continue;
       }
