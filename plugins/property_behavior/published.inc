@@ -18,7 +18,7 @@ function eck_extras_published_property_default_widget($property, $vars) {
   $entity = $vars['entity'];
   
   if (isset($entity->is_new) && $entity->is_new) {
-    $options = variable_get("eck_{$entity->entityType()}_{$entity->bundle()}_options");
+    $options = bundle::loadByMachineName("{$entity->entityType()}_{$entity->bundle()}")->config;
     $published = (int) $options['published'];
   } 
   else {
