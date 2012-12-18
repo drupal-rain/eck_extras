@@ -3,9 +3,9 @@
 /**
  * @file
  * .install file of eck_extras.
+ * 
+ * @todo Install, Uninstall tasks.
  */
-
-// @todo Install, Uninstall tasks.
 
 /**
  * Implements hook_install().

@@ -122,15 +122,15 @@ function eck_extras_field_extra_fields() {
         if (isset($properties_plugin_info[$property_name]['default_widget'])) {
           $fields[$eck_entity_type][$eck_bundle]['form'][$property_name] = array(
             'label' => t($property['label']),
-            'description' => t('Property ' . $property_name . '.'),
+            'description' => t('Property @property_name', array('@property_name' => $property_name)),
             'weight' => 0,
           );
         }
-        // Add to display if the property behavior implements 'default_formatter'.
+        // Add display if the property behavior implements 'default_formatter'.
         if (isset($properties_plugin_info[$property_name]['default_formatter'])) {
           $fields[$eck_entity_type][$eck_bundle]['display'][$property_name] = array(
             'label' => t($property['label']),
-            'description' => t('Property ' . $property_name . '.'),
+            'description' => t('Property @property_name', array('@property_name' => $property_name)),
             'weight' => 0,
           );
         }
@@ -173,7 +173,7 @@ function eck_extras_field_attach_form($entity_type, $entity, &$form, &$form_stat
       '#title' => t('Path Alias'),
       '#description' => t('Set the path alias of this entity.'),
       '#weight' => 100,
-      '#element_validate' => array('eck_extras_form_eck_path_validate')
+      '#element_validate' => array('eck_extras_form_eck_path_validate'),
     );
     $form['eck_path']['eck_path_auto'] = array(
       '#type' => 'checkbox',
@@ -181,7 +181,7 @@ function eck_extras_field_attach_form($entity_type, $entity, &$form, &$form_stat
       '#description' => t('Whether use the preset pattern path alias of this bundle.'),
       '#default_value' => isset($options['eck_path']['auto']) ? $options['eck_path']['auto'] : FALSE,
       '#disabled' => empty($options['eck_path']['auto']),
-      '#weight' => 0
+      '#weight' => 0,
     );
     $form['eck_path']['eck_path_alias'] = array(
       '#type' => 'textfield',
@@ -189,16 +189,16 @@ function eck_extras_field_attach_form($entity_type, $entity, &$form, &$form_stat
       '#description' => t('Set the path alias of this entity.'),
       '#size' => 60,
       '#default_value' => $entity_path_default,
-      '#weight' => 1
+      '#weight' => 1,
     );
     // If is_new, may only save as empty ''.
     $form['eck_path']['eck_path_old_alias'] = array(
       '#type' => 'value',
-      '#value' => $entity_path_default
+      '#value' => $entity_path_default,
     );
     $form['eck_path']['eck_path_source'] = array(
       '#type' => 'value',
-      '#value' => $entity_path
+      '#value' => $entity_path,
     );
   }
 }
@@ -287,14 +287,15 @@ function eck_extras_pathauto_create_alias($op, $pattern, $source, $data, $langua
   if ($op == 'update') {
     if ($existing_alias = _pathauto_existing_alias_data($source, $language)) {
       switch (variable_get('pathauto_update_action', PATHAUTO_UPDATE_ACTION_DELETE)) {
-        case PATHAUTO_UPDATE_ACTION_NO_NEW :
-          // If an alias already exists, and the update action is set to do nothing,
-          // then gosh-darn it, do nothing.
+        case PATHAUTO_UPDATE_ACTION_NO_NEW:
+          // If an alias already exists, and the update action is set to
+          // do nothing, then gosh-darn it, do nothing.
           return '';
       }
     }
   }
-  // Replace any tokens in the pattern. Uses callback option to clean replacements. No sanitization.
+  // Replace any tokens in the pattern. Uses callback option to
+  // clean replacements. No sanitization.
   $alias = token_replace($pattern, $data, array(
     'sanitize' => FALSE,
     'clear' => TRUE,
@@ -413,14 +414,14 @@ function eck_extras_entity_view($entity, $type, $view_mode, $langcode) {
       if (!isset($entity->title) && !empty($options['title'])) {
         drupal_set_title(token_replace($options['title'], array($type => $entity)));
       }
-      // published - property behavior temporary solution.
+      // Temporary solution of published - property behavior.
       // @todo Untill fix http://drupal.org/node/1694798.
       if (isset($entity->published) && $entity->published == ECK_PUBLISHED_NO) {
         $entity->content['#access'] = user_access('eck administer ' . $entity->entityType() . ' ' . $entity->bundle() . ' entities');
       }
     }
     else {
-      // published - property behavior temporary solution.
+      // Temporary solution of published - property behavior.
       // @todo Untill fix http://drupal.org/node/1694798.
       if (isset($entity->published) && $entity->published == ECK_PUBLISHED_NO) {
         $entity->content['#access'] = user_access('eck administer ' . $entity->entityType() . ' ' . $entity->bundle() . ' entities');

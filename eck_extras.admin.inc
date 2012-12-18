@@ -186,4 +186,3 @@ function _eck_extras_crud_changed($options_old, $options_new) {
     }
   }
 }
-
