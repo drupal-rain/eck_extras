@@ -148,9 +148,9 @@ function eck_extras_field_attach_form($entity_type, $entity, &$form, &$form_stat
   $eck_entity_types = eck_extras_get_entity_types();
   if (in_array($entity_type, array_keys($eck_entity_types))) {
     if (isset($entity->is_new) && $entity->is_new) {
-      // source.
+      // Source.
       $entity_path = '';
-      // old alias.
+      // Old alias.
       $entity_path_default = '';
     }
     else {
@@ -506,7 +506,7 @@ function eck_extras_form_eck__properties__form_alter(&$form, &$form_state) {
     $form['eck_property_label']['eck_property_label_' . $property_name] = array(
       '#type' => 'textfield',
       '#size' => 60,
-      '#title' => t('@name\'s Label', array('@name' => $property_name)),
+      '#title' => t("@name's Label", array('@name' => $property_name)),
       '#default_value' => $property['label'],
       '#weight' => $delta,
     );
