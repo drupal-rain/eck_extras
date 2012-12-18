@@ -4,7 +4,7 @@
  * @file
  * Machine Name property_behavior plugin for eck.
  */
- 
+
 $plugin = array(
   'label' => t('Machine Name'),
   'default_widget' => 'eck_extras_machine_name_property_default_widget',

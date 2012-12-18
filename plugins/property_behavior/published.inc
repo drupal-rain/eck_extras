@@ -16,15 +16,15 @@ $plugin = array(
  */
 function eck_extras_published_property_default_widget($property, $vars) {
   $entity = $vars['entity'];
-  
+
   if (isset($entity->is_new) && $entity->is_new) {
     $options = bundle::loadByMachineName("{$entity->entityType()}_{$entity->bundle()}")->config;
     $published = (int) $options['published'];
-  } 
+  }
   else {
     $published = isset($entity->{$property}) ? $entity->{$property} : 0;
   }
-  
+
   return array(
     '#type' => 'checkbox',
     '#title' => $vars['properties'][$property]['label'],

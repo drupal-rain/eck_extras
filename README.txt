@@ -15,7 +15,8 @@
 # Setting for Bundle
 
 # Planed Feature
-  - Integrate with panelizer.
+  - Integrate with Panelizer:panelizer.
+  - Integrate with Meta Tags:metatag
 
 # Todo
   - Add index to propety behavior type, even choosable.

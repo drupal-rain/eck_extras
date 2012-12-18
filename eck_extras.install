@@ -5,7 +5,7 @@
  * .install file of eck_extras.
  */
 
-// @todo Install, Uninstall tasks. 
+// @todo Install, Uninstall tasks.
 
 /**
  * Implements hook_install().
@@ -29,12 +29,6 @@ function eck_extras_install() {
  * Implements hook_uninstall().
  */
 function eck_extras_uninstall() {
-  $eck_entity_types = eck_extras_get_entity_types();
-  foreach ($eck_entity_types as $eck_entity_type => $eck_entity_type_bundles) {
-    foreach ($eck_entity_type_bundles as $eck_bundle) {
-      variable_del("eck_{$eck_entity_type}_{$eck_bundle}_options");
-    }
-  }
 }
 
 /**

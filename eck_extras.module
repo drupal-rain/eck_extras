@@ -17,17 +17,17 @@ define('ECK_PUBLISHED_NO', 0x00);
 
 /**
  * Implements hook_form_FORM_ID_alter().
- * 
- * Add configuration to bundle edit form. 
+ *
+ * Add configuration to bundle edit form.
  */
 function eck_extras_form_eck__bundle__edit_form_alter(&$form, &$form_state, $form_id) {
   module_load_include('inc', 'eck_extras', 'eck_extras.admin');
   $eck_entity_type = $form['entity_type']['#value']->name;
   $eck_bundle = $form['bundle']['#value']->name;
-  
+
   $form = eck_extras_bundle_edit_form($form, $form_state, $eck_entity_type, $eck_bundle);
-  
-  return($form);
+
+  return $form;
 }
 
 /**
@@ -37,7 +37,7 @@ function eck_extras_entity_info_alter(&$entity_info) {
   // Alter the Entity CRUD Paths.
   $eck_entity_types = eck_extras_get_entity_types();
   $crud = array('view', 'add', 'edit', 'delete');
-  
+
   foreach ($eck_entity_types as $eck_entity_type => $eck_entity_type_bundles) {
     foreach ($eck_entity_type_bundles as $eck_bundle) {
       $options = bundle::loadByMachineName("{$eck_entity_type}_{$eck_bundle}")->config;
@@ -71,10 +71,10 @@ function eck_extras_ctools_plugin_directory($owner, $plugin_type) {
  */
 function eck_extras_eck_default_properties() {
   $default_properties = array();
-  
+
   $default_properties['published'] = array(
-    'label' => 'Published', 
-    'type' => 'integer', 
+    'label' => 'Published',
+    'type' => 'integer',
     'behavior' => 'published',
   );
   $default_properties['machine_name'] = array(
@@ -82,7 +82,7 @@ function eck_extras_eck_default_properties() {
     'type' => 'text',
     'behavior' => 'machine_name',
   );
-  
+
   return $default_properties;
 }
 
@@ -98,7 +98,7 @@ function eck_extras_get_entity_types() {
       }
     }
   }
-  
+
   return $eck_entity_types;
 }
 
@@ -111,12 +111,12 @@ function eck_extras_field_extra_fields() {
   foreach ($eck_entity_types as $eck_entity_type => $eck_entity_type_bundles) {
     foreach ($eck_entity_type_bundles as $eck_bundle) {
       $fields[$eck_entity_type][$eck_bundle]['form']['eck_path'] = array(
-        'label' => t('Path Alias'), 
-        'description' => t('Set the path alias of this entity.'), 
+        'label' => t('Path Alias'),
+        'description' => t('Set the path alias of this entity.'),
         'weight' => 100,
       );
       // If the entity implements the specific property behavior.
-      $properties_plugin_info = ctools_get_plugins('eck', 'property_behavior'); 
+      $properties_plugin_info = ctools_get_plugins('eck', 'property_behavior');
       foreach (EntityType::loadByName($eck_entity_type)->properties as $property_name => $property) {
         // Add to form if the property behavior implements 'default_widget'.
         if (isset($properties_plugin_info[$property_name]['default_widget'])) {
@@ -137,7 +137,7 @@ function eck_extras_field_extra_fields() {
       }
     }
   }
-  
+
   return $fields;
 }
 
@@ -167,37 +167,37 @@ function eck_extras_field_attach_form($entity_type, $entity, &$form, &$form_stat
     }
     $options = bundle::loadByMachineName("{$entity_type}_{$entity->bundle()}")->config;
     $form['eck_path'] = array(
-      '#type' => 'fieldset', 
-      '#collapsible' => TRUE, 
-      '#collapsed' => empty($entity_path_default), 
-      '#title' => t('Path Alias'), 
-      '#description' => t('Set the path alias of this entity.'), 
-      '#weight' => 100, 
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#collapsed' => empty($entity_path_default),
+      '#title' => t('Path Alias'),
+      '#description' => t('Set the path alias of this entity.'),
+      '#weight' => 100,
       '#element_validate' => array('eck_extras_form_eck_path_validate')
     );
     $form['eck_path']['eck_path_auto'] = array(
-      '#type' => 'checkbox', 
-      '#title' => t('Auto Alias'), 
-      '#description' => t('Whether use the preset pattern path alias of this bundle.'), 
-      '#default_value' => isset($options['eck_path']['auto']) ? $options['eck_path']['auto'] : FALSE, 
-      '#disabled' => empty($options['eck_path']['auto']), 
+      '#type' => 'checkbox',
+      '#title' => t('Auto Alias'),
+      '#description' => t('Whether use the preset pattern path alias of this bundle.'),
+      '#default_value' => isset($options['eck_path']['auto']) ? $options['eck_path']['auto'] : FALSE,
+      '#disabled' => empty($options['eck_path']['auto']),
       '#weight' => 0
     );
     $form['eck_path']['eck_path_alias'] = array(
-      '#type' => 'textfield', 
-      '#title' => t('Path Alias'), 
-      '#description' => t('Set the path alias of this entity.'), 
-      '#size' => 60, 
-      '#default_value' => $entity_path_default, 
+      '#type' => 'textfield',
+      '#title' => t('Path Alias'),
+      '#description' => t('Set the path alias of this entity.'),
+      '#size' => 60,
+      '#default_value' => $entity_path_default,
       '#weight' => 1
     );
     // If is_new, may only save as empty ''.
     $form['eck_path']['eck_path_old_alias'] = array(
-      '#type' => 'value', 
+      '#type' => 'value',
       '#value' => $entity_path_default
     );
     $form['eck_path']['eck_path_source'] = array(
-      '#type' => 'value', 
+      '#type' => 'value',
       '#value' => $entity_path
     );
   }
@@ -214,9 +214,9 @@ function eck_extras_form_eck_path_validate($element, &$form_state, $complete_for
   $source = $form_state['values']['eck_path_source'];
   // Structure of eck_path property.
   $entity->eck_path = array(
-    'auto' => $auto, 
-    'alias' => trim($alias), 
-    'old alias' => $old_alias, 
+    'auto' => $auto,
+    'alias' => trim($alias),
+    'old alias' => $old_alias,
     'source' => $source);
   // Validate the manual path setting.
   // Check if the wanted alias already being used.
@@ -256,7 +256,7 @@ function _eck_extras_entity_path_update($entity, $op = 'update') {
   if (isset($options['eck_path']) && $options['eck_path']['auto'] && $entity->eck_path['auto']) {
     ctools_include('pathauto', 'pathauto', FALSE);
     $data = array($entity->entityType() => $entity);
-    
+
     eck_extras_pathauto_create_alias($op, $options['eck_path']['pattern'], $entity->eck_path['source'], $data, $langcode);
   }
   // Manual path alias.
@@ -269,7 +269,7 @@ function _eck_extras_entity_path_update($entity, $op = 'update') {
     // Normal update.
     elseif ($entity->eck_path['alias'] != $entity->eck_path['old alias']) {
       $path = array(
-        'source' => $entity->eck_path['source'], 
+        'source' => $entity->eck_path['source'],
         'alias' => $entity->eck_path['alias']);
       path_save($path);
     }
@@ -278,8 +278,8 @@ function _eck_extras_entity_path_update($entity, $op = 'update') {
 
 /**
  * Helper function to create a path alias, borrow from pathauto.
- * 
- * @see pathauto_create_alias().
+ *
+ * @see pathauto_create_alias()
  */
 function eck_extras_pathauto_create_alias($op, $pattern, $source, $data, $language = LANGUAGE_NONE) {
   // Special handling when updating an item which is already aliased.
@@ -296,10 +296,10 @@ function eck_extras_pathauto_create_alias($op, $pattern, $source, $data, $langua
   }
   // Replace any tokens in the pattern. Uses callback option to clean replacements. No sanitization.
   $alias = token_replace($pattern, $data, array(
-    'sanitize' => FALSE, 
-    'clear' => TRUE, 
-    'callback' => 'pathauto_clean_token_values', 
-    'language' => (object) array('language' => $language), 
+    'sanitize' => FALSE,
+    'clear' => TRUE,
+    'callback' => 'pathauto_clean_token_values',
+    'language' => (object) array('language' => $language),
     'pathauto' => TRUE));
   // Check if the token replacement has not actually replaced any values. If
   // that is the case, then stop because we should not generate an alias.
@@ -309,16 +309,17 @@ function eck_extras_pathauto_create_alias($op, $pattern, $source, $data, $langua
     return '';
   }
   $alias = pathauto_clean_alias($alias);
-  
+
   // Allow other modules to alter the alias as pathauto.
   $context = array(
-    'op' => $op, 
-    'source' => &$source, 
-    'data' => $data, 
-    'language' => &$language, 
-    'pattern' => $pattern);
+    'op' => $op,
+    'source' => &$source,
+    'data' => $data,
+    'language' => &$language,
+    'pattern' => $pattern,
+  );
   drupal_alter('eck_extras_pathauto_alias', $alias, $context);
-  
+
   // If we have arrived at an empty string, discontinue.
   if (!drupal_strlen($alias)) {
     return '';
@@ -329,7 +330,7 @@ function eck_extras_pathauto_create_alias($op, $pattern, $source, $data, $langua
   if ($original_alias != $alias) {
     // Alert the user why this happened.
     _pathauto_verbose(t('The automatically generated alias %original_alias conflicted with an existing alias. Alias changed to %alias.', array(
-      '%original_alias' => $original_alias, 
+      '%original_alias' => $original_alias,
       '%alias' => $alias)), $op);
   }
   // Return the generated alias if requested.
@@ -338,11 +339,12 @@ function eck_extras_pathauto_create_alias($op, $pattern, $source, $data, $langua
   }
   // Build the new path alias array and send it off to be created.
   $path = array(
-    'source' => $source, 
-    'alias' => $alias, 
-    'language' => $language);
+    'source' => $source,
+    'alias' => $alias,
+    'language' => $language,
+  );
   $path = _pathauto_set_alias($path, $existing_alias, $op);
-  
+
   return $path;
 }
 
@@ -361,6 +363,7 @@ function eck_extras_machine_name_exists($value, $element, &$form_state) {
   if (!empty($result)) {
     return TRUE;
   }
+
   return FALSE;
 }
 
@@ -428,9 +431,9 @@ function eck_extras_entity_view($entity, $type, $view_mode, $langcode) {
 
 /**
  * Implements hook_form_FORM_ID_alter().
- * 
+ *
  * Display Suite:ds integration.
- * @see ds_forms_form_field_ui_field_overview_form_alter().
+ * @see ds_forms_form_field_ui_field_overview_form_alter()
  */
 function eck_extras_form_field_ui_field_overview_form_alter(&$form, &$form_state) {
   if (
@@ -442,7 +445,7 @@ function eck_extras_form_field_ui_field_overview_form_alter(&$form, &$form_state
     $form['#view_mode'] = 'form';
     $form_state['no_panels'] = TRUE;
     $form_state['no_view_mode_suggestions'] = TRUE;
-    
+
     // Make sure the refresh works.
     if (!module_exists('field_group') && !module_exists('rel')) {
       // This key is used to store the current updated field.
@@ -452,7 +455,7 @@ function eck_extras_form_field_ui_field_overview_form_alter(&$form, &$form_state
       // Add AJAX wrapper.
       $form['fields']['#prefix'] = '<div id="field-display-overview-wrapper">';
       $form['fields']['#suffix'] = '</div>';
-    
+
       // See field_ui.admin.inc for more details on refresh rows.
       $form['refresh_rows'] = array('#type' => 'hidden');
       $form['refresh'] = array(
@@ -471,10 +474,10 @@ function eck_extras_form_field_ui_field_overview_form_alter(&$form, &$form_state
       );
       $form['#attached']['css'][] = drupal_get_path('module', 'ds_forms') . '/css/ds_forms.admin.css';
     }
-    
+
     // Attach js.
     $form['#attached']['js'][] = drupal_get_path('module', 'ds_forms') . '/js/ds_forms.admin.js';
-    
+
     // Load Display Suite.
     form_load_include($form_state, 'inc', 'ds', 'includes/ds.field_ui');
     ds_field_ui_fields_layouts($form, $form_state);
@@ -485,7 +488,7 @@ function eck_extras_form_field_ui_field_overview_form_alter(&$form, &$form_state
  * Implements hook_form_FORM_ID_alter().
  *
  * Allow change label of the properties.
- * @see eck__properties__form().
+ * @see eck__properties__form()
  */
 function eck_extras_form_eck__properties__form_alter(&$form, &$form_state) {
   $eck_entity_type = $form['entity_type']['#value'];
@@ -504,7 +507,7 @@ function eck_extras_form_eck__properties__form_alter(&$form, &$form_state) {
       '#size' => 60,
       '#title' => t('@name\'s Label', array('@name' => $property_name)),
       '#default_value' => $property['label'],
-      '#weight' => $delta,      
+      '#weight' => $delta,
     );
     $delta++;
   }

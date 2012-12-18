@@ -64,7 +64,7 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
     '#title' => t('Path Token Replacement'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
-    '#description' => theme('token_tree', array('token_types' => array($eck_entity_type),)),
+    '#description' => theme('token_tree', array('token_types' => array($eck_entity_type))),
     '#weight' => 5,
   );
   $form['eck_crud'] = array(
@@ -126,9 +126,9 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
       '#value' => TRUE,
     );
   }
-  
+
   $form['#submit'][] = 'eck_extras_bundle_edit_form_submit';
-  
+
   return $form;
 }
 
@@ -155,9 +155,9 @@ function eck_extras_bundle_edit_form_submit($form, &$form_state) {
   // Save the configuration.
   $form['bundle']['#value']->config = array_merge($options_old, $options);
   $form['bundle']['#value']->save();
-  
+
   // If eck_crud_* change state, clear menu cache, as it use menu_alter.
-  // @see eck_extras_entity_info_alter().
+  // @see eck_extras_entity_info_alter()
   if (_eck_extras_crud_changed($options_old, $options)) {
     entity_info_cache_clear();
     menu_rebuild();
