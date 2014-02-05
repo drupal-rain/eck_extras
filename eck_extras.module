@@ -433,61 +433,6 @@ function eck_extras_entity_view($entity, $type, $view_mode, $langcode) {
 /**
  * Implements hook_form_FORM_ID_alter().
  *
- * Display Suite:ds integration.
- * @see ds_forms_form_field_ui_field_overview_form_alter()
- */
-function eck_extras_form_field_ui_field_overview_form_alter(&$form, &$form_state) {
-  if (
-    module_exists('ds_forms')
-    && !isset($form['#view_mode'])
-    && in_array($form['#entity_type'], array_keys(eck_extras_get_entity_types()))
-  ) {
-    // Add necessary variables for DS Field UI.
-    $form['#view_mode'] = 'form';
-    $form_state['no_panels'] = TRUE;
-    $form_state['no_view_mode_suggestions'] = TRUE;
-
-    // Make sure the refresh works.
-    if (!module_exists('field_group') && !module_exists('rel')) {
-      // This key is used to store the current updated field.
-      $form_state += array(
-        'formatter_settings_edit' => NULL,
-      );
-      // Add AJAX wrapper.
-      $form['fields']['#prefix'] = '<div id="field-display-overview-wrapper">';
-      $form['fields']['#suffix'] = '</div>';
-
-      // See field_ui.admin.inc for more details on refresh rows.
-      $form['refresh_rows'] = array('#type' => 'hidden');
-      $form['refresh'] = array(
-        '#type' => 'submit',
-        '#value' => t('Refresh'),
-        '#op' => 'refresh_table',
-        '#submit' => array('field_ui_display_overview_multistep_submit'),
-        '#ajax' => array(
-          'callback' => 'field_ui_display_overview_multistep_js',
-          'wrapper' => 'field-display-overview-wrapper',
-          'effect' => 'fade',
-          // The button stays hidden, so we hide the AJAX spinner too. Ad-hoc
-          // spinners will be added manually by the client-side script.
-          'progress' => 'none',
-        ),
-      );
-      $form['#attached']['css'][] = drupal_get_path('module', 'ds_forms') . '/css/ds_forms.admin.css';
-    }
-
-    // Attach js.
-    $form['#attached']['js'][] = drupal_get_path('module', 'ds_forms') . '/js/ds_forms.admin.js';
-
-    // Load Display Suite.
-    form_load_include($form_state, 'inc', 'ds', 'includes/ds.field_ui');
-    ds_field_ui_fields_layouts($form, $form_state);
-  }
-}
-
-/**
- * Implements hook_form_FORM_ID_alter().
- *
  * Allow change label of the properties.
  * @see eck__properties__form()
  */
