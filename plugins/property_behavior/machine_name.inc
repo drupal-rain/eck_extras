@@ -7,9 +7,21 @@
 
 $plugin = array(
   'label' => t('Machine Name'),
+  'entity_info' => 'eck_extras_machine_name_property_entity_info',
   'default_widget' => 'eck_extras_machine_name_property_default_widget',
   'default_formatter' => 'eck_extras_machine_name_property_default_formatter',
 );
+
+/**
+ * Implements entity_info.
+ */
+function eck_extras_machine_name_property_entity_info($property, $vars) {
+  $info = $vars;
+
+  $info['entity keys']['name'] = $property;
+
+  return $info;
+}
 
 /**
  * Implements default_widget.
