@@ -5,6 +5,9 @@
  * eck_extras module file.
  */
 
+// -----------------------------------------------------------------------------
+// Global constants
+
 /**
  * Define the published status.
  */
@@ -14,6 +17,183 @@ define('ECK_PUBLISHED_YES', 0x01);
  * Define the unpublished status.
  */
 define('ECK_PUBLISHED_NO', 0x00);
+
+// -----------------------------------------------------------------------------
+// General hooks
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function eck_extras_ctools_plugin_directory($owner, $plugin_type) {
+  if (in_array($owner, array('ctools', 'eck')) && array('arguments', 'property_behavior')) {
+    return $owner . '/' . $plugin_type;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// General functions, utilities
+
+/**
+ * Get the entity types of eck module.
+ */
+function eck_extras_get_entity_types() {
+  $eck_entity_types = &drupal_static(__FUNCTION__, array());
+  if (count($eck_entity_types) == 0) {
+    foreach (EntityType::loadAll() as $eck_entity_type) {
+      foreach (Bundle::loadByEntityType($eck_entity_type) as $eck_bundle) {
+        $eck_entity_types[$eck_entity_type->name][] = $eck_bundle->name;
+      }
+    }
+  }
+
+  return $eck_entity_types;
+}
+
+/**
+ * Get the entity properties.
+ */
+function eck_extras_get_entity_properties($eck_entity_type, $property_behavior = NULL) {
+  $properties = EntityType::loadByName($eck_entity_type)->properties;
+  // If NULL, will return all.
+  if ($property_behavior) {
+    $properties_tmp = $properties;
+    $properties = array();
+    foreach ($properties_tmp as $name => $property) {
+      if (ktools_string_compare($property['property_behavior'], $property_behavior)) {
+        $properties[$name] = $property;
+      }
+    }
+  }
+
+  return $properties;
+}
+
+/**
+ * Get bundle config.
+ */
+function eck_extras_get_bundle_config($eck_entity_type, $eck_bundle, $key = NULL) {
+  $config = bundle::loadByMachineName("{$eck_entity_type}_{$eck_bundle}")->config;
+  // Only return setted key.
+  if (isset($key)) {
+    return isset($config[$key]) ? $config[$key] : NULL;
+  }
+  return $config;
+}
+
+// -----------------------------------------------------------------------------
+// Callbacks, helpers
+
+/**
+ * Callback function for Name property.
+ */
+function eck_extras_name_exists($value, $element, &$form_state) {
+  $entity = $form_state['values']['entity'];
+  $property = $element['#name'];
+  $value = $element['#value'];
+  $result = db_select("eck_{$entity->entityType()}", 't')
+    ->fields('t', array('id'))
+    ->condition("{$property}", $value, '=')
+    ->execute()
+    ->fetchField();
+  if (!empty($result)) {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Get type specified property as name source options. 
+ */
+function eck_extras_name_source_options($eck_entity_type) {
+  $properties = eck_extras_get_entity_properties($eck_entity_type);
+  $options = array();
+  $options[''] = t('-- None --');
+  foreach ($properties as $name => $property) {
+    if ($property['type'] == 'text' && $property['behavior'] != 'name') {
+      $options[$name] = t('!label', array('!label' => $property['label']));
+    }
+  }
+
+  return $options; 
+}
+
+// -----------------------------------------------------------------------------
+// ECK settings
+
+/**
+ * Implements hook_eck_default_properties().
+ */
+function eck_extras_eck_default_properties() {
+  $default_properties = array();
+  /*
+   $default_properties['published'] = array(
+       'label' => 'Published',
+       'type' => 'integer',
+       'behavior' => 'published',
+   );
+  */
+  $default_properties['name'] = array(
+    'label' => 'Name',
+    'type' => 'text',
+    'behavior' => 'name',
+  );
+
+  return $default_properties;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Allow change label of the properties.
+ * @see eck__properties__form()
+ */
+function eck_extras_form_eck__properties__form_alter(&$form, &$form_state) {
+  $eck_entity_type = $form['entity_type']['#value'];
+  $form['eck_property_label'] = array(
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#title' => t('Label of Property'),
+      '#description' => t('Change the label of the property.'),
+      '#weight' => 0,
+  );
+  $delta = 0;
+  foreach ($eck_entity_type->properties as $property_name => $property) {
+    $form['eck_property_label']['eck_property_label_' . $property_name] = array(
+        '#type' => 'textfield',
+        '#size' => 60,
+        '#title' => t("@name's Label", array('@name' => $property_name)),
+        '#default_value' => $property['label'],
+        '#weight' => $delta,
+    );
+    $delta++;
+  }
+  $form['#submit'][] = 'eck_extras_form_eck__properties__form_alter_submit';
+}
+
+/**
+ * Submit function for eck_extras_form_eck__properties__form_alter().
+ */
+function eck_extras_form_eck__properties__form_alter_submit($form, &$form_state) {
+  $eck_entity_type = $form['entity_type']['#value'];
+  // Due to overload magic __get(), set(). Can't directly change.
+  $properties = $eck_entity_type->properties;
+  $changes = 0;
+  foreach ($properties as $property_name => $property) {
+    if (isset($form_state['values']['eck_property_label_' . $property_name])
+    && $property['label'] != $form_state['values']['eck_property_label_' . $property_name]
+    ) {
+      $properties[$property_name]['label'] = $form_state['values']['eck_property_label_' . $property_name];
+      $changes++;
+    }
+  }
+  // Only save if has change.
+  if ($changes > 0) {
+    $eck_entity_type->properties = $properties;
+    $eck_entity_type->save();
+  }
+}
 
 /**
  * Implements hook_form_FORM_ID_alter().
@@ -30,77 +210,8 @@ function eck_extras_form_eck__bundle__edit_form_alter(&$form, &$form_state, $for
   return $form;
 }
 
-/**
- * Implements hook_entity_info_alter().
- */
-function eck_extras_entity_info_alter(&$entity_info) {
-  // Alter the Entity CRUD Paths.
-  $eck_entity_types = eck_extras_get_entity_types();
-  $crud = array('view', 'add', 'edit', 'delete');
-
-  foreach ($eck_entity_types as $eck_entity_type => $eck_entity_type_bundles) {
-    foreach ($eck_entity_type_bundles as $eck_bundle) {
-      $options = bundle::loadByMachineName("{$eck_entity_type}_{$eck_bundle}")->config;
-      if (count($options) == 0) {
-        continue;
-      }
-      foreach ($crud as $op) {
-        if (!empty($options['eck_crud'][$op])) {
-          $info = &$entity_info[$eck_entity_type]['bundles'][$eck_bundle]['crud'];
-          $info[$op]['path'] = $options['eck_crud'][$op];
-          if ($op != 'add') {
-            $info[$op]['entity_id'] = array_search('%', explode('/', $options['eck_crud'][$op]));
-          }
-        }
-      }
-    }
-  }
-}
-
-/**
- * Implements hook_ctools_plugin_directory().
- */
-function eck_extras_ctools_plugin_directory($owner, $plugin_type) {
-  if ($owner == 'eck' && $plugin_type == 'property_behavior') {
-    return 'plugins/' . $plugin_type;
-  }
-}
-
-/**
- * Implements hook_eck_default_properties().
- */
-function eck_extras_eck_default_properties() {
-  $default_properties = array();
-
-  $default_properties['published'] = array(
-    'label' => 'Published',
-    'type' => 'integer',
-    'behavior' => 'published',
-  );
-  $default_properties['machine_name'] = array(
-    'label' => 'Machine Name',
-    'type' => 'text',
-    'behavior' => 'machine_name',
-  );
-
-  return $default_properties;
-}
-
-/**
- * Helper function to get the entity types of eck module.
- */
-function eck_extras_get_entity_types() {
-  $eck_entity_types = &drupal_static(__FUNCTION__, array());
-  if (count($eck_entity_types) == 0) {
-    foreach (EntityType::loadAll() as $eck_entity_type) {
-      foreach (Bundle::loadByEntityType($eck_entity_type) as $eck_bundle) {
-        $eck_entity_types[$eck_entity_type->name][] = $eck_bundle->name;
-      }
-    }
-  }
-
-  return $eck_entity_types;
-}
+// -----------------------------------------------------------------------------
+// ECK entity
 
 /**
  * Implements hook_field_extra_fields().
@@ -350,25 +461,6 @@ function eck_extras_pathauto_create_alias($op, $pattern, $source, $data, $langua
 }
 
 /**
- * Callback function for Machine Name property.
- */
-function eck_extras_machine_name_exists($value, $element, &$form_state) {
-  $entity = $form_state['values']['entity'];
-  $property = $element['#name'];
-  $value = $element['#value'];
-  $result = db_select("eck_{$entity->entityType()}", 't')
-    ->fields('t', array('id'))
-    ->condition("{$property}", $value, '=')
-    ->execute()
-    ->fetchField();
-  if (!empty($result)) {
-    return TRUE;
-  }
-
-  return FALSE;
-}
-
-/**
  * Implements hook_entity_insert().
  */
 function eck_extras_entity_insert($entity, $type) {
@@ -427,58 +519,5 @@ function eck_extras_entity_view($entity, $type, $view_mode, $langcode) {
         $entity->content['#access'] = user_access('eck administer ' . $entity->entityType() . ' ' . $entity->bundle() . ' entities');
       }
     }
-  }
-}
-
-/**
- * Implements hook_form_FORM_ID_alter().
- *
- * Allow change label of the properties.
- * @see eck__properties__form()
- */
-function eck_extras_form_eck__properties__form_alter(&$form, &$form_state) {
-  $eck_entity_type = $form['entity_type']['#value'];
-  $form['eck_property_label'] = array(
-    '#type' => 'fieldset',
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#title' => t('Label of Property'),
-    '#description' => t('Change the label of the property.'),
-    '#weight' => 0,
-  );
-  $delta = 0;
-  foreach ($eck_entity_type->properties as $property_name => $property) {
-    $form['eck_property_label']['eck_property_label_' . $property_name] = array(
-      '#type' => 'textfield',
-      '#size' => 60,
-      '#title' => t("@name's Label", array('@name' => $property_name)),
-      '#default_value' => $property['label'],
-      '#weight' => $delta,
-    );
-    $delta++;
-  }
-  $form['#submit'][] = 'eck_extras_form_eck__properties__form_alter_submit';
-}
-
-/**
- * Submit function for eck_extras_form_eck__properties__form_alter().
- */
-function eck_extras_form_eck__properties__form_alter_submit($form, &$form_state) {
-  $eck_entity_type = $form['entity_type']['#value'];
-  // Due to overload magic __get(), set(). Can't directly change.
-  $properties = $eck_entity_type->properties;
-  $changes = 0;
-  foreach ($properties as $property_name => $property) {
-    if (isset($form_state['values']['eck_property_label_' . $property_name])
-      && $property['label'] != $form_state['values']['eck_property_label_' . $property_name]
-    ) {
-      $properties[$property_name]['label'] = $form_state['values']['eck_property_label_' . $property_name];
-      $changes++;
-    }
-  }
-  // Only save if has change.
-  if ($changes > 0) {
-    $eck_entity_type->properties = $properties;
-    $eck_entity_type->save();
   }
 }
