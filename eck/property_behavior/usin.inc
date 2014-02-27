@@ -7,6 +7,7 @@
 
 $plugin = array(
 	'label' => t('USIN'),
+  'unique' => TRUE,
   'entity_info' => 'eck_extras_usin_property_entity_info',
   'entity_save' => 'eck_extras_usin_property_entity_save',
   'default_formatter' => 'eck_extras_usin_property_default_formatter',
@@ -27,10 +28,6 @@ function eck_extras_usin_property_entity_save($property, $vars) {
     $bundle_config = eck_extras_get_bundle_config($vars['entity_type'], $entity->type);
     $entity->{$property} = ktools_string_random($bundle_config['usin']['source'], $bundle_config['usin']['length']);
   }
-}
-
-function _eck_extras_usin_property_value_generate($eck_entity_type) {
-  
 }
 
 function eck_extras_usin_property_default_formatter($property, $vars) {

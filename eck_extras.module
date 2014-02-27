@@ -51,21 +51,36 @@ function eck_extras_get_entity_types() {
 
 /**
  * Get the entity properties.
+ *
+ * @todo Add drupal_static().
  */
-function eck_extras_get_entity_properties($eck_entity_type, $property_behavior = NULL) {
+function eck_extras_entity_get_properties($eck_entity_type, $property_behavior = NULL) {
   $properties = EntityType::loadByName($eck_entity_type)->properties;
   // If NULL, will return all.
   if ($property_behavior) {
+    // Prepare an empty return.
     $properties_tmp = $properties;
     $properties = array();
     foreach ($properties_tmp as $name => $property) {
-      if (ktools_string_compare($property['property_behavior'], $property_behavior)) {
+      if (ktools_string_compare($property['behavior'], $property_behavior)) {
         $properties[$name] = $property;
       }
     }
   }
 
   return $properties;
+}
+
+/**
+ * Check if the entity has property_behavior.
+ */
+function eck_extras_entity_check_property_behavior($eck_entity_type, $property_behavior = NULL) {
+  $properties = eck_extras_entity_get_properties($eck_entity_type, $property_behavior);
+  if (count($properties) > 0) {
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 /**
@@ -78,6 +93,18 @@ function eck_extras_get_bundle_config($eck_entity_type, $eck_bundle, $key = NULL
     return isset($config[$key]) ? $config[$key] : NULL;
   }
   return $config;
+}
+
+/**
+ * Load an entity by 'name'.
+ */
+function eck_extras_load_by_name($eck_entity_type, $name) {
+  $entities = entity_property_query($eck_entity_type, 'name', $name);
+  if (count($entities)) {
+    return reset($entities);
+  }
+
+  return NULL;
 }
 
 // -----------------------------------------------------------------------------
@@ -106,7 +133,7 @@ function eck_extras_name_exists($value, $element, &$form_state) {
  * Get type specified property as name source options. 
  */
 function eck_extras_name_source_options($eck_entity_type) {
-  $properties = eck_extras_get_entity_properties($eck_entity_type);
+  $properties = eck_extras_entity_get_properties($eck_entity_type);
   $options = array();
   $options[''] = t('-- None --');
   foreach ($properties as $name => $property) {
@@ -143,6 +170,32 @@ function eck_extras_eck_default_properties() {
 }
 
 /**
+ * Implements hook_eck_property_types().
+ */
+function eck_extras_eck_property_types() {
+  $types = array();
+
+  $types['usin'] = t('USIN');
+
+  return $types;
+}
+
+/**
+ * Implements hook_eck_property_type_schema_alter().
+ */
+function eck_extras_eck_property_type_schema_alter(&$schema, $type) {
+  if ($type == 'usin') {
+    $schema = array(
+      'type' => 'char',
+      'length' => 10,
+      'not null' => TRUE,
+      'default' => '',
+      'description' => 'The Unique Standard Identification Number.',
+    );
+  }
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  *
  * Allow change label of the properties.
@@ -151,21 +204,21 @@ function eck_extras_eck_default_properties() {
 function eck_extras_form_eck__properties__form_alter(&$form, &$form_state) {
   $eck_entity_type = $form['entity_type']['#value'];
   $form['eck_property_label'] = array(
-      '#type' => 'fieldset',
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-      '#title' => t('Label of Property'),
-      '#description' => t('Change the label of the property.'),
-      '#weight' => 0,
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#title' => t('Label of Property'),
+    '#description' => t('Change the label of the property.'),
+    '#weight' => 0,
   );
   $delta = 0;
   foreach ($eck_entity_type->properties as $property_name => $property) {
     $form['eck_property_label']['eck_property_label_' . $property_name] = array(
-        '#type' => 'textfield',
-        '#size' => 60,
-        '#title' => t("@name's Label", array('@name' => $property_name)),
-        '#default_value' => $property['label'],
-        '#weight' => $delta,
+      '#type' => 'textfield',
+      '#size' => 60,
+      '#title' => t("@name's Label", array('@name' => $property_name)),
+      '#default_value' => $property['label'],
+      '#weight' => $delta,
     );
     $delta++;
   }
@@ -192,6 +245,25 @@ function eck_extras_form_eck__properties__form_alter_submit($form, &$form_state)
   if ($changes > 0) {
     $eck_entity_type->properties = $properties;
     $eck_entity_type->save();
+  }
+  // @todo Possible to move logic to hook_eck_entity_type_insert/update().
+  // name
+  if (array_key_exists('name', $properties)) {
+    // Add unique index.
+    $table = 'eck_' . $eck_entity_type->name;
+    if (!db_index_exists($table, 'name')) {
+      db_add_unique_key($table, 'name', array('name'));
+    }
+  }
+  // usin
+  if (array_key_exists('usin', $properties)) {
+    // @todo Fill empty old field.
+    
+    // Add unique index.
+    $table = 'eck_' . $eck_entity_type->name;
+    if (!db_index_exists($table, 'usin')) {
+      db_add_unique_key($table, 'usin', array('usin'));
+    }
   }
 }
 
