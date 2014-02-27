@@ -9,14 +9,16 @@
 // Global constants
 
 /**
+ * @deprecated
  * Define the published status.
  */
-define('ECK_PUBLISHED_YES', 0x01);
+//define('ECK_PUBLISHED_YES', 0x01);
 
 /**
+ * @deprecated
  * Define the unpublished status.
  */
-define('ECK_PUBLISHED_NO', 0x00);
+//define('ECK_PUBLISHED_NO', 0x00);
 
 // -----------------------------------------------------------------------------
 // General hooks
@@ -52,7 +54,17 @@ function eck_extras_get_entity_types() {
 /**
  * Get the entity properties.
  *
- * @todo Add drupal_static().
+ * Property layout:
+ * 'db column name' => array(
+ *   'label' => '',
+ *   'type' => '',
+ *   'behavior' => '',
+ * );
+ *
+ * Remember and be carefule.
+ * This value may be differ from the runtime value if being changed by user.
+ *
+ * @todo Add drupal_static(), but remember to reset where real data is updated.
  */
 function eck_extras_entity_get_properties($eck_entity_type, $property_behavior = NULL) {
   $properties = EntityType::loadByName($eck_entity_type)->properties;
@@ -229,13 +241,14 @@ function eck_extras_form_eck__properties__form_alter(&$form, &$form_state) {
  * Submit function for eck_extras_form_eck__properties__form_alter().
  */
 function eck_extras_form_eck__properties__form_alter_submit($form, &$form_state) {
-  $eck_entity_type = $form['entity_type']['#value'];
+  $eck_entity_type_obj = $form_state['values']['entity_type'];
   // Due to overload magic __get(), set(). Can't directly change.
-  $properties = $eck_entity_type->properties;
+  $properties = $eck_entity_type_obj->properties;
   $changes = 0;
   foreach ($properties as $property_name => $property) {
-    if (isset($form_state['values']['eck_property_label_' . $property_name])
-    && $property['label'] != $form_state['values']['eck_property_label_' . $property_name]
+    if (
+      isset($form_state['values']['eck_property_label_' . $property_name])
+      && $property['label'] != $form_state['values']['eck_property_label_' . $property_name]
     ) {
       $properties[$property_name]['label'] = $form_state['values']['eck_property_label_' . $property_name];
       $changes++;
@@ -243,27 +256,8 @@ function eck_extras_form_eck__properties__form_alter_submit($form, &$form_state)
   }
   // Only save if has change.
   if ($changes > 0) {
-    $eck_entity_type->properties = $properties;
-    $eck_entity_type->save();
-  }
-  // @todo Possible to move logic to hook_eck_entity_type_insert/update().
-  // name
-  if (array_key_exists('name', $properties)) {
-    // Add unique index.
-    $table = 'eck_' . $eck_entity_type->name;
-    if (!db_index_exists($table, 'name')) {
-      db_add_unique_key($table, 'name', array('name'));
-    }
-  }
-  // usin
-  if (array_key_exists('usin', $properties)) {
-    // @todo Fill empty old field.
-    
-    // Add unique index.
-    $table = 'eck_' . $eck_entity_type->name;
-    if (!db_index_exists($table, 'usin')) {
-      db_add_unique_key($table, 'usin', array('usin'));
-    }
+    $eck_entity_type_obj->properties = $properties;
+    $eck_entity_type_obj->save();
   }
 }
 
@@ -271,6 +265,8 @@ function eck_extras_form_eck__properties__form_alter_submit($form, &$form_state)
  * Implements hook_form_FORM_ID_alter().
  *
  * Add configuration to bundle edit form.
+ *
+ * @todo Is there a hook for better implementation?
  */
 function eck_extras_form_eck__bundle__edit_form_alter(&$form, &$form_state, $form_id) {
   module_load_include('inc', 'eck_extras', 'eck_extras.admin');
@@ -280,6 +276,45 @@ function eck_extras_form_eck__bundle__edit_form_alter(&$form, &$form_state, $for
   $form = eck_extras_bundle_edit_form($form, $form_state, $eck_entity_type, $eck_bundle);
 
   return $form;
+}
+
+/**
+ * Implements hook_eck_entity_type_insert().
+ */
+function eck_extras_eck_entity_type_insert(Entitytype $eck_entity_type_obj) {
+  _eck_extras_entity_type_property_behavior_save($eck_entity_type_obj);
+}
+
+/**
+ * Implements hook_eck_entity_type_update().
+ */
+function eck_extras_eck_entity_type_update(Entitytype $eck_entity_type_obj) {
+  _eck_extras_entity_type_property_behavior_save($eck_entity_type_obj);
+}
+
+/**
+ * Helper function to update db table of entity for property_behavior.
+ */
+function _eck_extras_entity_type_property_behavior_save(Entitytype $eck_entity_type_obj) {
+  // Add unique index to db table for 'name', 'usin'.
+  $propertity_behaviors = array('name', 'usin');
+  $table = 'eck_' . $eck_entity_type_obj->name;
+  // This is runtime value, i.e. it will be different from eck_extras_entity_get_properties($eck_entity_type_obj->name).
+  $properties = $eck_entity_type_obj->properties;
+  // Add new.
+  foreach ($properties as $column => $property) {
+    if (in_array($property['behavior'], $propertity_behaviors)) {
+      if (!db_index_exists($table, $property['behavior'])) {
+        db_add_unique_key($table, $property['behavior'], array($column));
+      }
+    }
+  }
+  // Delete old.
+  foreach ($propertity_behaviors as $propertity_behavior) {
+    if (db_index_exists($table, $propertity_behavior) && !eck_extras_entity_check_property_behavior($eck_entity_type_obj->name)) {
+      db_drop_index($table, $propertity_behavior);
+    }
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -536,6 +571,7 @@ function eck_extras_pathauto_create_alias($op, $pattern, $source, $data, $langua
  * Implements hook_entity_insert().
  */
 function eck_extras_entity_insert($entity, $type) {
+  // eck_path
   if (isset($entity->eck_path)) {
     _eck_extras_entity_path_update($entity, 'insert');
   }
@@ -580,16 +616,22 @@ function eck_extras_entity_view($entity, $type, $view_mode, $langcode) {
       }
       // Temporary solution of published - property behavior.
       // @todo Untill fix http://drupal.org/node/1694798.
+      // @deprecated
+      /*
       if (isset($entity->published) && $entity->published == ECK_PUBLISHED_NO) {
         $entity->content['#access'] = user_access('eck administer ' . $entity->entityType() . ' ' . $entity->bundle() . ' entities');
       }
+      */
     }
     else {
       // Temporary solution of published - property behavior.
       // @todo Untill fix http://drupal.org/node/1694798.
+      // @deprecated
+      /*
       if (isset($entity->published) && $entity->published == ECK_PUBLISHED_NO) {
         $entity->content['#access'] = user_access('eck administer ' . $entity->entityType() . ' ' . $entity->bundle() . ' entities');
       }
+      */
     }
   }
 }
