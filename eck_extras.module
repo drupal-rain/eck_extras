@@ -120,7 +120,7 @@ function eck_extras_load_by_name($eck_entity_type, $name) {
 }
 
 // -----------------------------------------------------------------------------
-// Callbacks, helpers
+// ECK property_behavior callbacks, helpers
 
 /**
  * Callback function for Name property.
@@ -157,6 +157,25 @@ function eck_extras_name_source_options($eck_entity_type) {
   return $options; 
 }
 
+/**
+ * Return the HTML title from an URL.
+ *
+ * @param string $url
+ *   An URL to request with drupal_http_request().
+ *
+ * @return string
+ *   The HTML title of the URL if found.
+ */
+function eck_extras_url_fetch_title($url) {
+  $request = drupal_http_request($url);
+  if (empty($request->error) && $request->code == 200 && !empty($request->data)) {
+    if (preg_match('!<title>(.*?)</title>!iu', $request->data, $matches)) {
+      // Title tags should be encoded, but we want the raw value.
+      return decode_entities($matches[1]);
+    }
+  }
+}
+
 // -----------------------------------------------------------------------------
 // ECK settings
 
@@ -183,11 +202,14 @@ function eck_extras_eck_default_properties() {
 
 /**
  * Implements hook_eck_property_types().
+ *
+ * Provide type of schema settings.
  */
 function eck_extras_eck_property_types() {
   $types = array();
 
   $types['usin'] = t('USIN');
+  $types['url'] = t('URL');
 
   return $types;
 }
@@ -196,14 +218,25 @@ function eck_extras_eck_property_types() {
  * Implements hook_eck_property_type_schema_alter().
  */
 function eck_extras_eck_property_type_schema_alter(&$schema, $type) {
-  if ($type == 'usin') {
-    $schema = array(
-      'type' => 'char',
-      'length' => 10,
-      'not null' => TRUE,
-      'default' => '',
-      'description' => 'The Unique Standard Identification Number.',
-    );
+  switch ($type) {
+  	case 'usin':
+  	  $schema = array(
+	      'type' => 'char',
+	      'length' => 10,
+	      'not null' => TRUE,
+	      'default' => '',
+	      'description' => 'The Unique Standard Identification Number.',
+  	  );
+  	  break;
+  	case 'url':
+  	  $schema = array(
+    	  'type' => 'varchar',
+    	  // Maximum URLs length.
+    	  'length' => 2048,
+    	  'not null' => FALSE,
+    	  'sortable' => TRUE,
+  	  );
+  	  break;
   }
 }
 
