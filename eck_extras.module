@@ -27,7 +27,7 @@
  * Implements hook_ctools_plugin_directory().
  */
 function eck_extras_ctools_plugin_directory($owner, $plugin_type) {
-  if (in_array($owner, array('ctools', 'eck')) && array('arguments', 'property_behavior')) {
+  if (in_array($owner, array('ctools', 'eck')) && in_array($plugin_type, array('arguments', 'property_behavior'))) {
     return $owner . '/' . $plugin_type;
   }
 }

@@ -25,7 +25,7 @@ function eck_extras_usin_property_entity_info($property, $vars) {
 function eck_extras_usin_property_entity_save($property, $vars) {
   $entity = $vars['entity'];
   if(isset($entity->is_new) && $entity->is_new && empty($entity->{$property})){
-    $bundle_config = eck_extras_get_bundle_config($vars['entity_type'], $entity->type);
+    $bundle_config = eck_extras_get_bundle_config($entity->entityType(), $entity->type);
     $entity->{$property} = ktools_string_random($bundle_config['usin']['source'], $bundle_config['usin']['length']);
   }
 }

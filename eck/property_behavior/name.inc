@@ -43,7 +43,7 @@ function eck_extras_name_property_default_widget($property, $vars) {
     '#type' => 'machine_name',
     '#machine_name' => array(
       'exists' => 'eck_extras_name_exists',
-      'source' => array(eck_extras_get_bundle_config($vars['entity_type'], $entity->type, 'name_source')),
+      'source' => array(eck_extras_get_bundle_config($entity->entityType(), $entity->type, 'name_source')),
       'replace_pattern' => '[^a-z0-9_]+',
       'replace' => '_',
     ),
@@ -72,7 +72,7 @@ function eck_extras_name_property_bundle_form($property, $vars) {
     '#title' => t('Name Property Source'),
     '#description' => t('Select the name property source.'),
     '#type' => 'select',
-    '#options' => eck_extras_name_source_options($vars['entity_type']),
+    '#options' => eck_extras_name_source_options($entity->entityType()),
     '#default_value' => isset($config['name_source']) ? $config['name_source'] : '',
     '#weight' => 5,
   );
