@@ -62,12 +62,20 @@ function eck_extras_get_entity_types() {
  * );
  *
  * Remember and be carefule.
- * This value may be differ from the runtime value if being changed by user.
+ * This value may be differ from the runtime value if being changed by user. 
  *
  * @todo Add drupal_static(), but remember to reset where real data is updated.
+ *
+ * @param EntityType|string $eck_entity_type
  */
-function eck_extras_entity_get_properties($eck_entity_type, $property_behavior = NULL) {
-  $properties = EntityType::loadByName($eck_entity_type)->properties;
+function eck_extras_entity_get_properties($eck_entity_type, $property_behavior = NULL, $first_only = FALSE) {
+  if (is_object($eck_entity_type)) {
+    $properties = $eck_entity_type->properties;
+  }
+  else {
+    $properties = EntityType::loadByName($eck_entity_type)->properties;
+  }
+
   // If NULL, will return all.
   if ($property_behavior) {
     // Prepare an empty return.
@@ -76,6 +84,9 @@ function eck_extras_entity_get_properties($eck_entity_type, $property_behavior =
     foreach ($properties_tmp as $name => $property) {
       if (ktools_string_compare($property['behavior'], $property_behavior)) {
         $properties[$name] = $property;
+        if ($first_only) {
+          return $property;
+        }
       }
     }
   }
@@ -85,6 +96,8 @@ function eck_extras_entity_get_properties($eck_entity_type, $property_behavior =
 
 /**
  * Check if the entity has property_behavior.
+ *
+ * @param EntityType|string $eck_entity_type
  */
 function eck_extras_entity_check_property_behavior($eck_entity_type, $property_behavior = NULL) {
   $properties = eck_extras_entity_get_properties($eck_entity_type, $property_behavior);
@@ -99,7 +112,7 @@ function eck_extras_entity_check_property_behavior($eck_entity_type, $property_b
  * Get bundle config.
  */
 function eck_extras_get_bundle_config($eck_entity_type, $eck_bundle, $key = NULL) {
-  $config = bundle::loadByMachineName("{$eck_entity_type}_{$eck_bundle}")->config;
+  $config = Bundle::loadByMachineName("{$eck_entity_type}_{$eck_bundle}")->config;
   // Only return setted key.
   if (isset($key)) {
     return isset($config[$key]) ? $config[$key] : NULL;
@@ -174,6 +187,8 @@ function eck_extras_url_fetch_title($url) {
       return decode_entities($matches[1]);
     }
   }
+
+  return '';
 }
 
 // -----------------------------------------------------------------------------
@@ -235,6 +250,7 @@ function eck_extras_eck_property_type_schema_alter(&$schema, $type) {
     	  'length' => 2048,
     	  'not null' => FALSE,
     	  'sortable' => TRUE,
+    	  'description' => 'The web URL address.',
   	  );
   	  break;
   }

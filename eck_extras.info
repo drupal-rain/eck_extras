@@ -7,4 +7,5 @@ version = 7.x-2.x
 dependencies[] = entity
 dependencies[] = entity_token
 dependencies[] = eck
+dependencies[] = elements
 dependencies[] = ktools
