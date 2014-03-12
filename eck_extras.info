@@ -8,4 +8,5 @@ dependencies[] = entity
 dependencies[] = entity_token
 dependencies[] = eck
 dependencies[] = elements
+dependencies[] = entityreference_autocomplete
 dependencies[] = ktools

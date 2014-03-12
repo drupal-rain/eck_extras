@@ -20,3 +20,10 @@
 
 # Todo
   - Add index to propety behavior type, even choosable.
+
+# ECK property_behavior
+* name
+* url
+* entityreference
+* status
+* usin

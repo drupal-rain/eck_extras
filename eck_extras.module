@@ -121,6 +121,27 @@ function eck_extras_get_bundle_config($eck_entity_type, $eck_bundle, $key = NULL
 }
 
 /**
+ * Get bundle config by Entity object.
+ *
+ * @see eck_extras_get_bundle_config().
+ */
+function eck_extras_entity_get_bundle_config(Entity $entity, $key = NULL) {
+  return eck_extras_get_bundle_config($entity->entityType(), $entity->bundle(), $key);
+}
+
+/**
+ * Get a list options of defined entity types.
+ */
+function eck_extras_entity_type_options() {
+  $entity_type_options = array();
+  foreach (entity_get_info() as $entity_type => $entity_info) {
+    $entity_type_options[$entity_type] = $entity_info['label'];
+  }
+
+  return $entity_type_options; 
+}
+
+/**
  * Load an entity by 'name'.
  */
 function eck_extras_load_by_name($eck_entity_type, $name) {
