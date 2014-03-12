@@ -16,7 +16,7 @@ $plugin = array(
 
 /**
  * Callback for property_behavior plugin: entity_info.
-*/
+ */
 function eck_extras_name_property_entity_info($property, $vars) {
   $info = $vars;
 
