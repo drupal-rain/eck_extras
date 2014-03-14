@@ -65,14 +65,15 @@ function eck_extras_name_property_default_formatter($property, $vars) {
 
 function eck_extras_name_property_bundle_form($property, $vars) {
   $form = &$vars['form'];
-  $config = $vars['form']['bundle']['#value']->config;
+  $eck_entity_type = $form['entity_type']['#value'];
+  $config = $form['bundle']['#value']->config;
 
   // name property.
   $form['config_name_source'] = array(
     '#title' => t('Name Property Source'),
     '#description' => t('Select the name property source.'),
     '#type' => 'select',
-    '#options' => eck_extras_name_source_options($entity->entityType()),
+    '#options' => eck_extras_name_source_options($eck_entity_type->name),
     '#default_value' => isset($config['name_source']) ? $config['name_source'] : '',
     '#weight' => 5,
   );

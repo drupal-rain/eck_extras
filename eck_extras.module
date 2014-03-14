@@ -133,12 +133,7 @@ function eck_extras_entity_get_bundle_config(Entity $entity, $key = NULL) {
  * Get a list options of defined entity types.
  */
 function eck_extras_entity_type_options() {
-  $entity_type_options = array();
-  foreach (entity_get_info() as $entity_type => $entity_info) {
-    $entity_type_options[$entity_type] = $entity_info['label'];
-  }
-
-  return $entity_type_options; 
+  return KtoolsEntity::typeOptions(); 
 }
 
 /**

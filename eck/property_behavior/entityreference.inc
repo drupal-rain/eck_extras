@@ -73,7 +73,8 @@ function eck_extras_entityreference_property_getter($property, $vars) {
 function eck_extras_entityreference_property_setter($property, $vars) {
   $entity = $vars['entity'];
   // While entity metadata wrapper is just a wrapper of data, setter is setting by the data.
-  $entity->{$property} = $vars['value']->value()->internalIdentifier();
+  //$entity->{$property} = ktools_entity_id($vars['value']);
+  $entity->{$property} = KtoolsEntity::interId($vars['value']);
 }
 
 function eck_extras_entityreference_property_bundle_form($property, $vars) {
