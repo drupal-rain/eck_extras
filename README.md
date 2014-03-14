@@ -1,3 +1,12 @@
+# ECK property_behavior
+* text
+* longtext
+* name
+* url
+* entityreference
+* status
+* usin
+
 # Feature
 * Path for ECK
   - Path setting per entitty.
@@ -20,10 +29,3 @@
 
 # Todo
   - Add index to propety behavior type, even choosable.
-
-# ECK property_behavior
-* name
-* url
-* entityreference
-* status
-* usin
