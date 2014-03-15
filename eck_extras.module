@@ -677,16 +677,28 @@ function eck_extras_entity_delete($entity, $type) {
  */
 function eck_extras_entity_view($entity, $type, $view_mode, $langcode) {
   $eck_entity_types = eck_extras_get_entity_types();
+  // Only deal with eck entity types.
   if (in_array($type, array_keys($eck_entity_types))) {
-    $options = bundle::loadByMachineName("{$type}_{$entity->bundle()}")->config;
+    $config = bundle::loadByMachineName("{$type}_{$entity->bundle()}")->config;
+    $eck_entity_type = EntityType::loadByName($type);
+    // Add all 'default_formatter'
+    $formatters = eck_property_behavior_invoke_plugin($eck_entity_type, 'default_formatter',
+      array('entity' => $entity));
+    $property_view = array();
+    foreach ($formatters as $property => $formatter) {
+      $property_view[$property] = $formatter;
+    }
+    $entity->content += $property_view;
+
     // $options - title.
-    if (!empty($options['title']) && isset($entity->title)) {
-      $entity->title = token_replace($options['title'], array($type => $entity));
+    // @todo Remove this
+    if (!empty($config['title']) && isset($entity->title)) {
+      $entity->title = token_replace($config['title'], array($type => $entity));
     }
     if ($view_mode == 'full') {
       // Can do somehing for 'full' view mode.
-      if (!isset($entity->title) && !empty($options['title'])) {
-        drupal_set_title(token_replace($options['title'], array($type => $entity)));
+      if (!isset($entity->title) && !empty($config['title'])) {
+        drupal_set_title(token_replace($config['title'], array($type => $entity)));
       }
       // Temporary solution of published - property behavior.
       // @todo Untill fix http://drupal.org/node/1694798.
