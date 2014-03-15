@@ -20,7 +20,7 @@ function eck_extras_url_property_entity_save($property, $vars) {
   $entity = $vars['entity'];
   if(!empty($entity->{$property}) && empty($entity->title)){
     $bundle_config = eck_extras_get_bundle_config($entity->entityType(), $entity->type);
-    if ($bundle_config['url_fetch_title']) {
+    if (isset($bundle_config['url_fetch_title']) && $bundle_config['url_fetch_title']) {
       $entity->title = eck_extras_url_fetch_title($entity->{$property});
     }
   }
