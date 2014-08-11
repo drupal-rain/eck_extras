@@ -1,3 +1,10 @@
+# ECK Mod
+* Entity Type
+  - Allow hanging property label after creation.
+* Entity Bundle
+  - Title override.
+  - Pathauto pattern.
+
 # ECK property_behavior
 * name
 * text
