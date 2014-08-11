@@ -38,10 +38,12 @@ function eck_extras_ctools_plugin_directory($owner, $plugin_type) {
 /**
  * Get the entity types of eck module.
  */
-function eck_extras_get_entity_types() {
-  $eck_entity_types = &drupal_static(__FUNCTION__, array());
-  if (count($eck_entity_types) == 0) {
-    foreach (EntityType::loadAll() as $eck_entity_type) {
+function eck_extras_get_entity_types($only_types = FALSE) {
+  foreach (EntityType::loadAll() as $eck_entity_type) {
+    if ($only_types) {
+      $eck_entity_types[] = $eck_entity_type->name;
+    }
+    else {
       foreach (Bundle::loadByEntityType($eck_entity_type) as $eck_bundle) {
         $eck_entity_types[$eck_entity_type->name][] = $eck_bundle->name;
       }
@@ -680,8 +682,9 @@ function eck_extras_entity_view($entity, $type, $view_mode, $langcode) {
   // Only deal with eck entity types.
   if (in_array($type, array_keys($eck_entity_types))) {
     $config = bundle::loadByMachineName("{$type}_{$entity->bundle()}")->config;
+    // Add all 'default_formatter' to content build if not exist yet.
+    // Others could implement hook_entity_view_alter() to change it.
     $eck_entity_type = EntityType::loadByName($type);
-    // Add all 'default_formatter'
     $formatters = eck_property_behavior_invoke_plugin($eck_entity_type, 'default_formatter',
       array('entity' => $entity));
     $property_view = array();

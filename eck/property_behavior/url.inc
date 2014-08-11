@@ -38,7 +38,10 @@ function eck_extras_url_property_default_widget($property, $vars) {
 function eck_extras_url_property_default_formatter($property, $vars) {
   $entity = $vars['entity'];
   return array(
-    '#markup' => strip_tags($entity->{$property}),
+    '#type' => 'link',
+    '#title' => isset($entity->title) ? $entity->title : $entity->{$property},
+    '#href' => $entity->{$property},
+    // @todo '#options'
   );
 }
 
