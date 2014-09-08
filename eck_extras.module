@@ -39,6 +39,7 @@ function eck_extras_ctools_plugin_directory($owner, $plugin_type) {
  * Get the entity types of eck module.
  */
 function eck_extras_get_entity_types($only_types = FALSE) {
+  $eck_entity_types = array();
   foreach (EntityType::loadAll() as $eck_entity_type) {
     if ($only_types) {
       $eck_entity_types[] = $eck_entity_type->name;
