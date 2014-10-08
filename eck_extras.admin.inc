@@ -12,8 +12,19 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
   $form_state['eck_entity_type'] = $eck_entity_type;
   $form_state['eck_bundle'] = $eck_bundle;
   $options = $form['bundle']['#value']->config;
-  $has_title = eck_extras_entity_check_property_behavior($eck_entity_type, 'title');
+  $eck_bundle_obj = $form['bundle']['#value'];
+
+  // Bundle Label
+  $form['bundle_label'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Bundle Label'),
+    '#description' => t('Change the bundle label.'),
+    '#default_value' => $eck_bundle_obj->label,
+    '#weight' => -100,
+  );
+
   // title.
+  $has_title = eck_extras_entity_check_property_behavior($eck_entity_type, 'title');
   if ($has_title) {
     $form['title'] = array(
       '#type' => 'fieldset',
@@ -44,6 +55,7 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
       '#weight' => 1,
     );
   }
+
   // eck_path.
   if (module_exists('path')) {
     $form['eck_path'] = array(
@@ -81,18 +93,17 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
       '#weight'      => 5,
     );
   }
+
   // published.
-  $properties = EntityType::loadByName($eck_entity_type)->properties;
-  foreach ($properties as $property_name => $property_info) {
-    if ($property_info['behavior'] == 'published') {
-      $form['published'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Default as published'),
-        '#description' => t('Set the entity to published as default.'),
-        '#default_value' => isset($options['published']) ? $options['published'] : FALSE,
-        '#weight' => 20,
-      );
-    }
+  $has_published = eck_extras_entity_check_property_behavior($eck_entity_type, 'published');
+  if ($has_published) {
+    $form['published'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Default as published'),
+      '#description' => t('Set the entity to published as default.'),
+      '#default_value' => isset($options['published']) ? $options['published'] : FALSE,
+      '#weight' => 20,
+    );
   }
   if (!isset($form['published'])) {
     $form['published'] = array(
@@ -101,6 +112,7 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
     );
   }
 
+  // Add submit handler
   $form['#submit'][] = 'eck_extras_bundle_edit_form_submit';
 
   return $form;
@@ -110,7 +122,14 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
  * Submit for eck_extras_bundle_edit_form().
  */
 function eck_extras_bundle_edit_form_submit($form, &$form_state) {
-  $options_old = $form['bundle']['#value']->config;
+  $eck_bundle_obj = $form['bundle']['#value'];
+  $options_old = $eck_bundle_obj->config;
+
+  // Bundle Label
+  if (!empty($form_state['values']['bundle_label'])) {
+    $eck_bundle_obj->label = $form_state['values']['bundle_label'];
+  }
+
   // Structure of the bundle configuration.
   $options = array(
     'title' => $form_state['values']['title']['pattern'],
@@ -121,6 +140,6 @@ function eck_extras_bundle_edit_form_submit($form, &$form_state) {
     'published' => (bool) $form_state['values']['published'],
   );
   // Save the configuration.
-  $form['bundle']['#value']->config = array_merge($options_old, $options);
-  $form['bundle']['#value']->save();
+  $eck_bundle_obj->config = array_merge($options_old, $options);
+  $eck_bundle_obj->save();
 }
