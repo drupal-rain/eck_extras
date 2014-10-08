@@ -17,7 +17,7 @@ function eck_extras_bundle_edit_form($form, &$form_state, $eck_entity_type, $eck
   // Bundle Label
   $form['bundle_label'] = array(
     '#type' => 'textfield',
-    '#title' => t('Bundle Label'),
+    '#title' => t('Bundle Label for \'@name\'', array('@name' => $eck_bundle_obj->name)),
     '#description' => t('Change the bundle label.'),
     '#default_value' => $eck_bundle_obj->label,
     '#weight' => -100,
