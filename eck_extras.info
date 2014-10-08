@@ -2,7 +2,7 @@ name = ECK Extras
 description = Add ECK extra functions not exist in the eck core.
 package = ECK
 core = 7.x
-version = 7.x-2.x
+version = 7.x-2.5
 
 dependencies[] = entity
 dependencies[] = entity_token

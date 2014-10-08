@@ -55,6 +55,23 @@ function eck_extras_get_entity_types($only_types = FALSE) {
 }
 
 /**
+ * Get the entity bundles.
+ */
+function eck_extras_get_entity_bundles($entity_type = NULL) {
+  $eck_bundles = array();
+  foreach (EntityType::loadAll() as $eck_entity_type) {
+    foreach (Bundle::loadByEntityType($eck_entity_type) as $eck_bundle) {
+      $eck_bundles[$eck_entity_type->name][] = $eck_bundle->name;
+    }
+  }
+
+  if ($entity_type) {
+    return isset($eck_bundles[$entity_type]) ? $eck_bundles[$entity_type] : array();
+  }
+  return $eck_bundles;
+}
+
+/**
  * Get the entity properties.
  *
  * Property layout:
