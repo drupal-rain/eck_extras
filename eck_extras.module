@@ -422,11 +422,13 @@ function eck_extras_field_extra_fields() {
   $eck_entity_types = eck_extras_get_entity_types();
   foreach ($eck_entity_types as $eck_entity_type => $eck_entity_type_bundles) {
     foreach ($eck_entity_type_bundles as $eck_bundle) {
-      $fields[$eck_entity_type][$eck_bundle]['form']['eck_path'] = array(
-        'label' => t('Path Alias'),
-        'description' => t('Set the path alias of this entity.'),
-        'weight' => 100,
-      );
+      if (module_exists('path')) {
+        $fields[$eck_entity_type][$eck_bundle]['form']['eck_path'] = array(
+          'label'       => t('Path Alias'),
+          'description' => t('Set the path alias of this entity.'),
+          'weight'      => 100,
+        );
+      }
       // If the entity implements the specific property behavior.
       $properties_plugin_info = ctools_get_plugins('eck', 'property_behavior');
       foreach (EntityType::loadByName($eck_entity_type)->properties as $property_name => $property) {
@@ -458,6 +460,7 @@ function eck_extras_field_extra_fields() {
  */
 function eck_extras_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode) {
   $eck_entity_types = eck_extras_get_entity_types();
+  // Only deal with eck entity.
   if (in_array($entity_type, array_keys($eck_entity_types))) {
     if (isset($entity->is_new) && $entity->is_new) {
       // Source.
@@ -478,40 +481,43 @@ function eck_extras_field_attach_form($entity_type, $entity, &$form, &$form_stat
       }
     }
     $options = bundle::loadByMachineName("{$entity_type}_{$entity->bundle()}")->config;
-    $form['eck_path'] = array(
-      '#type' => 'fieldset',
-      '#collapsible' => TRUE,
-      '#collapsed' => empty($entity_path_default),
-      '#title' => t('Path Alias'),
-      '#description' => t('Set the path alias of this entity.'),
-      '#weight' => 100,
-      '#element_validate' => array('eck_extras_form_eck_path_validate'),
-    );
-    $form['eck_path']['eck_path_auto'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Auto Alias'),
-      '#description' => t('Whether use the preset pattern path alias of this bundle.'),
-      '#default_value' => isset($options['eck_path']['auto']) ? $options['eck_path']['auto'] : FALSE,
-      '#disabled' => empty($options['eck_path']['auto']),
-      '#weight' => 0,
-    );
-    $form['eck_path']['eck_path_alias'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Path Alias'),
-      '#description' => t('Set the path alias of this entity.'),
-      '#size' => 60,
-      '#default_value' => $entity_path_default,
-      '#weight' => 1,
-    );
-    // If is_new, may only save as empty ''.
-    $form['eck_path']['eck_path_old_alias'] = array(
-      '#type' => 'value',
-      '#value' => $entity_path_default,
-    );
-    $form['eck_path']['eck_path_source'] = array(
-      '#type' => 'value',
-      '#value' => $entity_path,
-    );
+    // eck_path
+    if (module_exists('path')) {
+      $form['eck_path'] = array(
+        '#type'             => 'fieldset',
+        '#collapsible'      => TRUE,
+        '#collapsed'        => empty($entity_path_default),
+        '#title'            => t('Path Alias'),
+        '#description'      => t('Set the path alias of this entity.'),
+        '#weight'           => 100,
+        '#element_validate' => array('eck_extras_form_eck_path_validate'),
+      );
+      $form['eck_path']['eck_path_auto'] = array(
+        '#type'          => 'checkbox',
+        '#title'         => t('Auto Alias'),
+        '#description'   => t('Whether use the preset pattern path alias of this bundle.'),
+        '#default_value' => isset($options['eck_path']['auto']) ? $options['eck_path']['auto'] : FALSE,
+        '#disabled'      => empty($options['eck_path']['auto']),
+        '#weight'        => 0,
+      );
+      $form['eck_path']['eck_path_alias'] = array(
+        '#type'          => 'textfield',
+        '#title'         => t('Path Alias'),
+        '#description'   => t('Set the path alias of this entity.'),
+        '#size'          => 60,
+        '#default_value' => $entity_path_default,
+        '#weight'        => 1,
+      );
+      // If is_new, may only save as empty ''.
+      $form['eck_path']['eck_path_old_alias'] = array(
+        '#type'  => 'value',
+        '#value' => $entity_path_default,
+      );
+      $form['eck_path']['eck_path_source'] = array(
+        '#type'  => 'value',
+        '#value' => $entity_path,
+      );
+    }
   }
 }
 
