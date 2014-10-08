@@ -6,6 +6,7 @@
   - Pathauto pattern.
 
 # ECK property_behavior
+* hidden
 * name
 * text
 * textarea
