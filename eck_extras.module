@@ -582,7 +582,9 @@ function _eck_extras_entity_path_update($entity, $op = 'update') {
     // Do nothing if the same. alias == old alias.
     // If empty alias or same as the source, delete it.
     if (empty($entity->eck_path['alias']) || $entity->eck_path['alias'] == $entity->eck_path['source']) {
-      path_delete($entity->eck_path['old alias']);
+      if (!empty($entity->eck_path['old alias'])) {
+        path_delete($entity->eck_path['old alias']);
+      }
     }
     // Normal update.
     elseif ($entity->eck_path['alias'] != $entity->eck_path['old alias']) {
