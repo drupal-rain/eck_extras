@@ -132,7 +132,7 @@ function eck_extras_bundle_edit_form_submit($form, &$form_state) {
 
   // Structure of the bundle configuration.
   $options = array(
-    'title' => $form_state['values']['title']['pattern'],
+    'title' => isset($form_state['values']['title']['pattern']) ? $form_state['values']['title']['pattern'] : '',
     'eck_path' => array(
       'auto' => (bool) $form_state['values']['eck_path']['auto'],
       'pattern' => $form_state['values']['eck_path']['auto_pattern'],
